@@ -1056,8 +1056,10 @@ function animatePrint(){
   document.getElementById('progressPercent').textContent=Math.round(printProgress)+'%';
   document.getElementById('progressFill').style.width=printProgress+'%';
   
-  // Animate rotation
-  printScene.rotation.y+=0.003;
+  // Slow rotation during printing
+  if(printProgress<95){
+    printScene.rotation.y+=0.002;
+  }
   
   // Layer-by-layer printing simulation for base and shade only (lying flat on plate)
   const lampGroup=printScene.children.find(c=>c.isGroup);
@@ -1065,36 +1067,58 @@ function animatePrint(){
     const baseMesh=lampGroup.children.find(c=>c.userData&&c.userData.type==='base');
     const shadeMesh=lampGroup.children.find(c=>c.userData&&c.userData.type==='shade');
     
-    // Base prints first (0-50% progress)
+    // Base prints first (5-50% progress) - builds up from the plate
     if(baseMesh){
-      const baseProgress=Math.min(1,Math.max(0,(printProgress-5)/45)); // 5% to 50%
+      const baseProgress=Math.min(1,Math.max(0,(printProgress-5)/45));
       const baseBox=new THREE.Box3().setFromObject(baseMesh);
       const baseHeight=baseBox.max.y-baseBox.min.y;
-      const scaleY=baseProgress;
-      baseMesh.scale.set(1,scaleY,1);
-      baseMesh.position.y=baseBox.min.y+(baseHeight*scaleY)/2;
-      baseMesh.visible=baseProgress>0.05;
+      
+      // Reset scale and position
+      baseMesh.scale.set(1,1,1);
+      baseMesh.position.y=baseBox.min.y;
+      
+      // Simulate layers by adjusting the visible height
+      if(baseProgress>0.02){
+        baseMesh.visible=true;
+        const currentHeight=baseHeight*baseProgress;
+        baseMesh.position.y=baseBox.min.y+currentHeight/2;
+        baseMesh.scale.y=baseProgress;
+      }else{
+        baseMesh.visible=false;
+      }
     }
     
     // Shade prints second (50-95% progress), placed next to base on the plate
     if(shadeMesh){
-      const shadeProgress=Math.min(1,Math.max(0,(printProgress-55)/40)); // 55% to 95%
+      const shadeProgress=Math.min(1,Math.max(0,(printProgress-55)/40));
       const shadeBox=new THREE.Box3().setFromObject(shadeMesh);
       const shadeHeight=shadeBox.max.y-shadeBox.min.y;
-      const scaleY=shadeProgress;
-      shadeMesh.scale.set(1,scaleY,1);
-      shadeMesh.position.y=shadeBox.min.y+(shadeHeight*scaleY)/2;
-      shadeMesh.visible=shadeProgress>0.05;
+      
+      // Reset scale and position
+      shadeMesh.scale.set(1,1,1);
+      shadeMesh.position.y=shadeBox.min.y;
+      
+      // Simulate layers by adjusting the visible height
+      if(shadeProgress>0.02){
+        shadeMesh.visible=true;
+        const currentHeight=shadeHeight*shadeProgress;
+        shadeMesh.position.y=shadeBox.min.y+currentHeight/2;
+        shadeMesh.scale.y=shadeProgress;
+      }else{
+        shadeMesh.visible=false;
+      }
     }
   }
   
   printRenderer.render(printScene,printCamera);
   
   if(printProgress<100){
-    printProgress+=0.25;
+    printProgress+=0.3;
     printAnimationId=requestAnimationFrame(animatePrint);
   }else{
     document.getElementById('printStage').textContent='✓ Готово к печати!';
+    // Stop rotation when complete
+    printScene.rotation.y=0;
   }
 }
 
