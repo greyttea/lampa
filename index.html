@@ -264,6 +264,7 @@ let scene,camera,renderer,controls;
 let allMeshes=[],allLights=[],envLights=[];
 let windowGlass=null;
 let previewRenderers={};
+let bulbGlowSprite=null;
 
 const swatchSets={
   sSwatches:['#f5e6d3','#2c2c2c','#c4a882','#e8d5c4','#d4a574','#8b4513','#4a6741','#1a3a5c','#800020','#f0f0f0'],
@@ -287,7 +288,7 @@ function init(){
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   controls=new OrbitControls(camera,renderer.domElement);
   controls.enableDamping=true;controls.dampingFactor=0.08;
-  controls.minDistance=80;controls.maxDistance=900;controls.maxPolarAngle=Math.PI*0.85;
+  controls.minDistance=80;controls.maxDistance=1200;controls.maxPolarAngle=Math.PI*0.85;
   buildSwatches();
   setEditMode();
   pushHistory();
@@ -429,7 +430,10 @@ function getShadeMat(op){
   const mt=document.getElementById('s_mat').value;
   const tex=genTexture();
   const base={color:new THREE.Color(col),map:tex,transparent:op<1,opacity:op,side:THREE.DoubleSide};
-  if(mode==='edit'){base.emissive=new THREE.Color(col).multiplyScalar(0.08);base.emissiveIntensity=0.3;}
+  if(mode==='edit'){
+    base.emissive=new THREE.Color(col).multiplyScalar(0.06);
+    base.emissiveIntensity=0.35;
+  }
   switch(mt){
     case'fabric':return{...base,roughness:0.85,metalness:0};
     case'paper':return{...base,roughness:0.95,metalness:0};
@@ -447,23 +451,24 @@ function clearScene(){
   allMeshes=[];
   envLights.forEach(l=>scene.remove(l));envLights=[];
   allLights.forEach(l=>scene.remove(l));allLights=[];
+  if(bulbGlowSprite){scene.remove(bulbGlowSprite);bulbGlowSprite=null;}
   windowGlass=null;
 }
 
-function getLampTopY(){
+function getLampTopY(baseY){
   const bt=document.getElementById('b_type').value;
   const bH=parseFloat(document.getElementById('b_baseH').value);
   const pH=parseFloat(document.getElementById('b_poleH').value);
   switch(bt){
-    case'classic':return bH+pH+6;
-    case'modern':return bH*0.7+pH;
-    case'industrial':return bH*0.6+pH+5;
-    case'wood':return bH+pH;
-    case'marble':return bH*1.5+pH;
-    case'minimal':return 4+pH;
-    case'vintage':return bH*0.5+pH;
-    case'ceramic':return bH*1.2+pH;
-    default:return bH+pH;
+    case'classic':return baseY+bH+pH+6;
+    case'modern':return baseY+bH*0.7+pH;
+    case'industrial':return baseY+bH*0.6+pH+5;
+    case'wood':return baseY+bH+pH;
+    case'marble':return baseY+bH*1.5+pH;
+    case'minimal':return baseY+4+pH;
+    case'vintage':return baseY+bH*0.5+pH;
+    case'ceramic':return baseY+bH*1.2+pH;
+    default:return baseY+bH+pH;
   }
 }
 
@@ -499,58 +504,62 @@ function buildLamp(){
   const bMat=new THREE.MeshStandardMaterial({color:new THREE.Color(b_color),metalness:b_metal,roughness:b_rough});
   const jMat=new THREE.MeshStandardMaterial({color:new THREE.Color(j_color),metalness:j_metal,roughness:0.3});
 
-  let lampTop=0;
+  // Base Y: in test mode lamp sits on desk (desk top at 728), in edit mode at 0
+  const baseY=mode==='test'?728:0;
+  let lampTop=getLampTopY(baseY);
 
+  // Base
   switch(b_type){
     case'classic':{
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.85,b_baseR,b_baseH,32),bMat),0,b_baseH/2,0);
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT,b_poleT,b_poleH,16),bMat),0,b_baseH+b_poleH/2,0);
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT+4,b_poleT+3,6,16),bMat),0,b_baseH+b_poleH+3,0);
-      lampTop=b_baseH+b_poleH+6;break;
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.85,b_baseR,b_baseH,32),bMat),0,baseY+b_baseH/2,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT,b_poleT,b_poleH,16),bMat),0,baseY+b_baseH+b_poleH/2,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT+4,b_poleT+3,6,16),bMat),0,baseY+b_baseH+b_poleH+3,0);
+      lampTop=baseY+b_baseH+b_poleH+6;break;
     }
     case'modern':{
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR,b_baseR*0.7,b_baseH*0.7,6),bMat),0,b_baseH*0.35,0);
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT*0.8,b_poleT,b_poleH,8),bMat),0,b_baseH*0.7+b_poleH/2,0);
-      lampTop=b_baseH*0.7+b_poleH;break;
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR,b_baseR*0.7,b_baseH*0.7,6),bMat),0,baseY+b_baseH*0.35,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT*0.8,b_poleT,b_poleH,8),bMat),0,baseY+b_baseH*0.7+b_poleH/2,0);
+      lampTop=baseY+b_baseH*0.7+b_poleH;break;
     }
     case'industrial':{
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.9,b_baseR,b_baseH*0.6,8),bMat),0,b_baseH*0.3,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.9,b_baseR,b_baseH*0.6,8),bMat),0,baseY+b_baseH*0.3,0);
       for(let i=0;i<3;i++){const a=(i/3)*Math.PI*2;
         addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT*0.6,b_poleT*0.6,b_poleH,12),bMat),
-          Math.cos(a)*b_baseR*0.3,b_baseH*0.6+b_poleH/2,Math.sin(a)*b_baseR*0.3);
+          Math.cos(a)*b_baseR*0.3,baseY+b_baseH*0.6+b_poleH/2,Math.sin(a)*b_baseR*0.3);
       }
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.5,b_baseR*0.5,5,32),bMat),0,b_baseH*0.6+b_poleH+2.5,0);
-      lampTop=b_baseH*0.6+b_poleH+5;break;
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.5,b_baseR*0.5,5,32),bMat),0,baseY+b_baseH*0.6+b_poleH+2.5,0);
+      lampTop=baseY+b_baseH*0.6+b_poleH+5;break;
     }
     case'wood':{
-      addM(new THREE.Mesh(new THREE.BoxGeometry(b_baseR*2,b_baseH,b_baseR*2),bMat),0,b_baseH/2,0);
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT*1.2,b_poleT*1.5,b_poleH,12),bMat),0,b_baseH+b_poleH/2,0);
-      lampTop=b_baseH+b_poleH;break;
+      addM(new THREE.Mesh(new THREE.BoxGeometry(b_baseR*2,b_baseH,b_baseR*2),bMat),0,baseY+b_baseH/2,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT*1.2,b_poleT*1.5,b_poleH,12),bMat),0,baseY+b_baseH+b_poleH/2,0);
+      lampTop=baseY+b_baseH+b_poleH;break;
     }
     case'marble':{
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR,b_baseR*0.9,b_baseH*1.5,32),bMat),0,b_baseH*0.75,0);
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT,b_poleT,b_poleH,16),bMat),0,b_baseH*1.5+b_poleH/2,0);
-      addM(new THREE.Mesh(new THREE.TorusGeometry(b_poleT+3,2,8,16),bMat),0,b_baseH*1.5+b_poleH,0);
-      lampTop=b_baseH*1.5+b_poleH;break;
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR,b_baseR*0.9,b_baseH*1.5,32),bMat),0,baseY+b_baseH*0.75,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT,b_poleT,b_poleH,16),bMat),0,baseY+b_baseH*1.5+b_poleH/2,0);
+      addM(new THREE.Mesh(new THREE.TorusGeometry(b_poleT+3,2,8,16),bMat),0,baseY+b_baseH*1.5+b_poleH,0);
+      lampTop=baseY+b_baseH*1.5+b_poleH;break;
     }
     case'minimal':{
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.6,b_baseR*0.6,4,32),bMat),0,2,0);
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT*0.7,b_poleT*0.7,b_poleH,12),bMat),0,4+b_poleH/2,0);
-      lampTop=4+b_poleH;break;
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.6,b_baseR*0.6,4,32),bMat),0,baseY+2,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT*0.7,b_poleT*0.7,b_poleH,12),bMat),0,baseY+4+b_poleH/2,0);
+      lampTop=baseY+4+b_poleH;break;
     }
     case'vintage':{
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.7,b_baseR,b_baseH*0.5,32),bMat),0,b_baseH*0.25,0);
-      addM(new THREE.Mesh(new THREE.SphereGeometry(b_baseR*0.4,32,16,0,Math.PI*2,0,Math.PI/2),bMat),0,b_baseH*0.5,0);
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT,b_poleT*1.1,b_poleH,12),bMat),0,b_baseH*0.5+b_poleH/2,0);
-      lampTop=b_baseH*0.5+b_poleH;break;
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.7,b_baseR,b_baseH*0.5,32),bMat),0,baseY+b_baseH*0.25,0);
+      addM(new THREE.Mesh(new THREE.SphereGeometry(b_baseR*0.4,32,16,0,Math.PI*2,0,Math.PI/2),bMat),0,baseY+b_baseH*0.5,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT,b_poleT*1.1,b_poleH,12),bMat),0,baseY+b_baseH*0.5+b_poleH/2,0);
+      lampTop=baseY+b_baseH*0.5+b_poleH;break;
     }
     case'ceramic':{
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.6,b_baseR,b_baseH*1.2,32),bMat),0,b_baseH*0.6,0);
-      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT,b_poleT*1.3,b_poleH,16),bMat),0,b_baseH*1.2+b_poleH/2,0);
-      lampTop=b_baseH*1.2+b_poleH;break;
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.6,b_baseR,b_baseH*1.2,32),bMat),0,baseY+b_baseH*0.6,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT,b_poleT*1.3,b_poleH,16),bMat),0,baseY+b_baseH*1.2+b_poleH/2,0);
+      lampTop=baseY+b_baseH*1.2+b_poleH;break;
     }
   }
 
+  // Joint
   const jointY=lampTop;
   switch(j_type){
     case'ring':{
@@ -597,6 +606,7 @@ function buildLamp(){
     }
   }
 
+  // Shade
   const shadeY=jointY+j_ht;
   let shadeGeo;
   if(s_shape==='hexagon'){
@@ -611,10 +621,12 @@ function buildLamp(){
 
   addTrim(s_trim,s_topR,s_botR,shadeY,s_seg);
 
+  // ===== TEST MODE EXTRAS =====
   if(mode==='test'){
     const deskCol=document.getElementById('deskColor')?.value||'#5c3d2e';
     const deskMat=new THREE.MeshStandardMaterial({color:new THREE.Color(deskCol),roughness:0.6,metalness:0.1});
-    addM(new THREE.Mesh(new THREE.BoxGeometry(600,16,350),deskMat),0,720,0);
+    const desk=addM(new THREE.Mesh(new THREE.BoxGeometry(600,16,350),deskMat),0,720,0);
+
     const legMat=new THREE.MeshStandardMaterial({color:0x3d2518,roughness:0.7});
     [[-280,360,-155],[280,360,-155],[-280,360,155],[280,360,155]].forEach(p=>{
       addM(new THREE.Mesh(new THREE.BoxGeometry(10,720,10),legMat),...p);
@@ -641,34 +653,65 @@ function buildLamp(){
     addM(new THREE.Mesh(new THREE.CylinderGeometry(14,11,18,16),new THREE.MeshStandardMaterial({color:0xc47451,roughness:0.8})),160,738,-70);
     addM(new THREE.Mesh(new THREE.SphereGeometry(16,16,16),new THREE.MeshStandardMaterial({color:0x2d5a27,roughness:0.9})),160,758,-70);
 
+    // Bulb positioned at the bottom opening of the shade, visible underneath
     const bulbCol=document.getElementById('bulbColor').value;
     const bulbSz=parseFloat(document.getElementById('t_bs').value);
     const bulbPos=parseFloat(document.getElementById('t_bpos').value);
     const br=parseFloat(document.getElementById('t_br').value)/100;
-    const bulbY=shadeY+bulbPos-s_ht*0.5+20;
 
-    addM(new THREE.Mesh(new THREE.SphereGeometry(bulbSz/2,24,24),
-      new THREE.MeshStandardMaterial({color:new THREE.Color(bulbCol),emissive:new THREE.Color(bulbCol),emissiveIntensity:br*1.5,roughness:0.1,transparent:true,opacity:0.9})),0,bulbY,0);
+    // Bulb sits just below/at the bottom edge of the shade opening
+    // bulbPos 0 = lowest (below shade), 100 = highest (near middle of shade)
+    const bulbY=shadeY-5+(bulbPos/100)*s_ht*0.25;
 
-    // Main point light with shadow casting
-    const pLight=new THREE.PointLight(new THREE.Color(bulbCol),br*1200,2000,1);
+    // Bulb mesh - bright emissive
+    const bulbMesh=addM(new THREE.Mesh(new THREE.SphereGeometry(bulbSz/2,24,24),
+      new THREE.MeshStandardMaterial({
+        color:new THREE.Color(bulbCol),
+        emissive:new THREE.Color(bulbCol),
+        emissiveIntensity:br*2.0,
+        roughness:0.05,
+        transparent:true,
+        opacity:0.95
+      })),0,bulbY,0);
+
+    // Glow sprite for visible glow effect
+    const glowCanvas=document.createElement('canvas');
+    glowCanvas.width=128;glowCanvas.height=128;
+    const gctx=glowCanvas.getContext('2d');
+    const grd=gctx.createRadialGradient(64,64,0,64,64,64);
+    grd.addColorStop(0,'rgba(255,255,255,1)');
+    grd.addColorStop(0.2,'rgba(255,255,255,0.6)');
+    grd.addColorStop(0.5,'rgba(255,200,100,0.2)');
+    grd.addColorStop(1,'rgba(255,200,100,0)');
+    gctx.fillStyle=grd;gctx.fillRect(0,0,128,128);
+    const glowTex=new THREE.CanvasTexture(glowCanvas);
+    const glowMat=new THREE.SpriteMaterial({map:glowTex,transparent:true,blending:THREE.AdditiveBlending,opacity:br*0.8});
+    bulbGlowSprite=new THREE.Sprite(glowMat);
+    bulbGlowSprite.position.set(0,bulbY,0);
+    bulbGlowSprite.scale.set(bulbSz*3,bulbSz*3,1);
+    scene.add(bulbGlowSprite);
+
+    // ===== MAIN PHYSICAL POINT LIGHT =====
+    // This is the primary light source that illuminates everything and casts shadows
+    const pLight=new THREE.PointLight(new THREE.Color(bulbCol),br*1500,2500,0.8);
     pLight.position.set(0,bulbY,0);
     pLight.castShadow=true;
     pLight.shadow.mapSize.set(2048,2048);
-    pLight.shadow.bias=-0.0005;
-    pLight.shadow.radius=6;
+    pLight.shadow.bias=-0.0003;
+    pLight.shadow.radius=8;
     pLight.shadow.camera.near=1;
-    pLight.shadow.camera.far=2500;
+    pLight.shadow.camera.far=3000;
     scene.add(pLight);allLights.push(pLight);
 
-    // Inner fill light (no shadow) for soft illumination inside shade
-    const iLight=new THREE.PointLight(new THREE.Color(bulbCol),br*300,400,2);
-    iLight.position.set(0,bulbY,0);
-    scene.add(iLight);allLights.push(iLight);
+    // Secondary fill light for softer shadows (no shadow casting)
+    const fillLight=new THREE.PointLight(new THREE.Color(bulbCol),br*200,500,2);
+    fillLight.position.set(0,bulbY,0);
+    scene.add(fillLight);allLights.push(fillLight);
 
+    // Shade reacts to bulb glow from inside
     if(shade&&shade.material){
       shade.material.emissive=new THREE.Color(bulbCol);
-      shade.material.emissiveIntensity=br*0.25;
+      shade.material.emissiveIntensity=br*0.3;
     }
   }
 
@@ -761,10 +804,14 @@ function checkCompatibility(){
 
 function focusOnLamp(){
   const s_ht=parseFloat(document.getElementById('s_height').value);
-  const lampTop=getLampTopY();
+  const lampTop=getLampTopY(mode==='test'?728:0);
   const cy=lampTop+s_ht/2;
   controls.target.set(0,cy,0);
-  camera.position.set(250,cy+50,280);
+  if(mode==='edit'){
+    camera.position.set(250,cy+50,280);
+  } else {
+    camera.position.set(400,cy+100,400);
+  }
 }
 
 function setEditMode(){
@@ -777,17 +824,42 @@ function setEditMode(){
   document.getElementById('envBar').style.display='none';
   document.getElementById('hint').style.display='block';
 
+  // Pleasant edit mode background and lighting
   scene.background=new THREE.Color(0x1a1a24);
-  renderer.toneMappingExposure=1.3;
+  renderer.toneMappingExposure=1.2;
 
-  const amb=new THREE.AmbientLight(0x8888bb,0.7);scene.add(amb);envLights.push(amb);
-  const hemi=new THREE.HemisphereLight(0xaabbff,0x443322,0.35);scene.add(hemi);envLights.push(hemi);
-  const d1=new THREE.DirectionalLight(0xffffff,2.0);d1.position.set(200,300,200);d1.castShadow=true;
-  d1.shadow.mapSize.set(2048,2048);d1.shadow.camera.near=10;d1.shadow.camera.far=1000;
-  d1.shadow.camera.left=-300;d1.shadow.camera.right=300;d1.shadow.camera.top=300;d1.shadow.camera.bottom=-300;
-  scene.add(d1);envLights.push(d1);
-  const d2=new THREE.DirectionalLight(0xc8c8ff,0.8);d2.position.set(-200,200,-100);scene.add(d2);envLights.push(d2);
-  const d3=new THREE.DirectionalLight(0xffd4a8,0.5);d3.position.set(0,100,-300);scene.add(d3);envLights.push(d3);
+  // Warm ambient for pleasant look
+  const amb=new THREE.AmbientLight(0x9999cc,0.5);scene.add(amb);envLights.push(amb);
+
+  // Soft hemisphere light
+  const hemi=new THREE.HemisphereLight(0xaabbff,0x554433,0.3);scene.add(hemi);envLights.push(hemi);
+
+  // Main key light - warm, directional
+  const key=new THREE.DirectionalLight(0xffeedd,1.8);
+  key.position.set(150,250,200);
+  key.castShadow=true;
+  key.shadow.mapSize.set(2048,2048);
+  key.shadow.camera.near=10;key.shadow.camera.far=800;
+  key.shadow.camera.left=-250;key.shadow.camera.right=250;
+  key.shadow.camera.top=250;key.shadow.camera.bottom=-250;
+  key.shadow.bias=-0.001;
+  key.shadow.radius=4;
+  scene.add(key);envLights.push(key);
+
+  // Fill light - cool, from opposite side
+  const fill=new THREE.DirectionalLight(0x8899bb,0.7);
+  fill.position.set(-200,150,-100);
+  scene.add(fill);envLights.push(fill);
+
+  // Rim light from behind
+  const rim=new THREE.DirectionalLight(0xffccaa,0.4);
+  rim.position.set(0,80,-300);
+  scene.add(rim);envLights.push(rim);
+
+  // Top accent light
+  const top=new THREE.DirectionalLight(0xffffff,0.3);
+  top.position.set(0,300,0);
+  scene.add(top);envLights.push(top);
 
   buildLamp();
 }
@@ -827,19 +899,19 @@ function updateTestEnv(env){
   envLights.forEach(l=>scene.remove(l));envLights=[];
   let bg,ac,ai,dc,di,exp,sd;
   switch(env){
-    case'dark':bg=0x050508;ac=0x0a0a15;ai=0.03;dc=0;di=0;exp=0.6;sd=0;break;
-    case'night':bg=0x080818;ac=0x121228;ai=0.06;dc=0x1a2244;di=0.1;exp=0.7;sd=0;break;
-    case'evening':bg=0x1a1020;ac=0x2a1a2a;ai=0.12;dc=0x553344;di=0.25;exp=0.85;sd=0.15;break;
-    case'sunset':bg=0x2a1510;ac=0x3a2015;ai=0.2;dc=0xff8833;di=0.7;exp=1.1;sd=0.35;break;
-    case'cloudy':bg=0x2a2a2a;ac=0x444444;ai=0.35;dc=0x666666;di=0.4;exp=0.95;sd=0.2;break;
-    case'day':bg=0x87ceeb;ac=0x556677;ai=0.45;dc=0xffffff;di=1.2;exp=1.2;sd=0.5;break;
-    case'studio':bg=0x1a1a1a;ac=0x333333;ai=0.25;dc=0xffffff;di=0.9;exp=1.3;sd=0.4;break;
+    case'dark':bg=0x050508;ac=0x0a0a15;ai=0.02;dc=0;di=0;exp=0.6;sd=0;break;
+    case'night':bg=0x080818;ac=0x121228;ai=0.04;dc=0x1a2244;di=0.08;exp=0.7;sd=0;break;
+    case'evening':bg=0x1a1020;ac=0x2a1a2a;ai=0.08;dc=0x553344;di=0.2;exp=0.85;sd=0.15;break;
+    case'sunset':bg=0x2a1510;ac=0x3a2015;ai=0.15;dc=0xff8833;di=0.6;exp=1.1;sd=0.35;break;
+    case'cloudy':bg=0x2a2a2a;ac=0x444444;ai=0.25;dc=0x666666;di=0.35;exp=0.95;sd=0.2;break;
+    case'day':bg=0x87ceeb;ac=0x556677;ai=0.35;dc=0xffffff;di=1.0;exp=1.2;sd=0.5;break;
+    case'studio':bg=0x1a1a1a;ac=0x333333;ai=0.2;dc=0xffffff;di=0.8;exp=1.3;sd=0.4;break;
   }
   scene.background=new THREE.Color(bg);renderer.toneMappingExposure=exp;
   const amb=new THREE.AmbientLight(ac,ai);scene.add(amb);envLights.push(amb);
   if(di>0){const d=new THREE.DirectionalLight(dc,di);d.position.set(600+sd*200,600,-200);d.castShadow=true;d.shadow.mapSize.set(2048,2048);d.shadow.camera.near=10;d.shadow.camera.far=2500;d.shadow.camera.left=-600;d.shadow.camera.right=600;d.shadow.camera.top=600;d.shadow.camera.bottom=-600;d.shadow.bias=-0.0005;scene.add(d);envLights.push(d);}
-  const wl=new THREE.DirectionalLight(0x88aaff,sd*0.6);wl.position.set(750,500,50);scene.add(wl);envLights.push(wl);
-  const hemi=new THREE.HemisphereLight(0x4466aa,0x222233,0.08);scene.add(hemi);envLights.push(hemi);
+  const wl=new THREE.DirectionalLight(0x88aaff,sd*0.5);wl.position.set(750,500,50);scene.add(wl);envLights.push(wl);
+  const hemi=new THREE.HemisphereLight(0x4466aa,0x222233,0.06);scene.add(hemi);envLights.push(hemi);
   if(windowGlass){if(['day','cloudy','studio'].includes(env)){windowGlass.material.color.set(0x87ceeb);windowGlass.material.opacity=0.3;}else{windowGlass.material.color.set(0x111128);windowGlass.material.opacity=0.5;}}
   document.querySelectorAll('.e-btn').forEach(b=>b.classList.remove('active'));
   const map={dark:'Тёмная',night:'Ночь',evening:'Вечер',sunset:'Закат',cloudy:'Облачно',day:'День',studio:'Студия'};
@@ -942,7 +1014,6 @@ function makeMesh(geo,mat,x,y,z){
   const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);return m;
 }
 
-// ===== COMPATIBLE RANDOMIZATION =====
 function randomizePart(part){
   pushHistory();
   const shapes=['cylinder','cone','drum','empire','bell','sphere','hexagon','oval','flare','tulip'];
@@ -954,7 +1025,6 @@ function randomizePart(part){
   const cols=['#f5e6d3','#2c2c2c','#c4a882','#e8d5c4','#d4a574','#8b4513','#4a6741','#1a3a5c','#800020','#f0f0f0'];
   const r=()=>Math.random();
 
-  // Read current values
   const cur_s_botR=parseFloat(document.getElementById('s_botR').value);
   const cur_b_poleT=parseFloat(document.getElementById('b_poleT').value);
 
@@ -972,7 +1042,7 @@ function randomizePart(part){
     document.getElementById('s_op').value=40+r()*60;
     document.getElementById('s_pat').value=pats[r()*pats.length|0];
     document.getElementById('s_trim').value=trims[r()*trims.length|0];
-    // Auto-fix joint top to match
+    // Auto-fix joint top to match new shade bottom
     document.getElementById('j_topR').value=newBotR;
   }
   if(part==='base'){
@@ -982,13 +1052,13 @@ function randomizePart(part){
     document.getElementById('b_poleH').value=30+r()*130;
     const newPoleT=2+r()*10;
     document.getElementById('b_poleT').value=newPoleT;
-    // Auto-fix joint bottom to match
+    // Auto-fix joint bottom to match new pole
     document.getElementById('j_botR').value=newPoleT;
   }
   if(part==='joint'){
     document.getElementById('j_type').value=joints[r()*joints.length|0];
     document.getElementById('j_height').value=5+r()*45;
-    // Auto-fit to current shade and base
+    // Auto-fit to current shade bottom and pole top
     document.getElementById('j_topR').value=cur_s_botR;
     document.getElementById('j_botR').value=cur_b_poleT;
   }
@@ -1008,6 +1078,7 @@ function randomizeAll(){
   const cols=['#f5e6d3','#2c2c2c','#c4a882','#e8d5c4','#d4a574','#8b4513','#4a6741','#1a3a5c','#800020','#f0f0f0'];
   const r=()=>Math.random();
 
+  // Generate compatible values
   const s_botR=30+r()*160;
   const b_poleT=2+r()*10;
 
