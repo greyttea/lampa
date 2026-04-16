@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчёт по лабораторной работе - Конструктор Ламп</title>
+    <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/400.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/600.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/700.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 2px solid rgba(167, 139, 250, 0.3);
+            margin-bottom: 40px;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #888;
+        }
+        .student-info {
+            background: rgba(167, 139, 250, 0.1);
+            border: 1px solid rgba(167, 139, 250, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .student-info p {
+            font-size: 14px;
+            color: #aaa;
+            margin: 5px 0;
+        }
+        .student-info strong {
+            color: #a78bfa;
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #a78bfa;
+            margin: 30px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(167, 139, 250, 0.2);
+        }
+        h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #60a5fa;
+            margin: 20px 0 10px 0;
+        }
+        p {
+            font-size: 14px;
+            color: #ccc;
+            margin: 10px 0;
+            text-align: justify;
+        }
+        ul, ol {
+            margin: 10px 0 10px 25px;
+            font-size: 14px;
+            color: #ccc;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .section {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .tech-item {
+            background: rgba(167, 139, 250, 0.08);
+            border: 1px solid rgba(167, 139, 250, 0.15);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .tech-item strong {
+            display: block;
+            color: #a78bfa;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .tech-item span {
+            font-size: 12px;
+            color: #888;
+        }
+        .feature-list {
+            list-style: none;
+            margin: 10px 0;
+        }
+        .feature-list li {
+            padding: 8px 0 8px 25px;
+            position: relative;
+        }
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #34d399;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        th {
+            background: rgba(167, 139, 250, 0.1);
+            color: #a78bfa;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .code-block {
+            background: #0d0d15;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #a78bfa;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .highlight {
+            background: rgba(167, 139, 250, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #a78bfa;
+        }
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+            color: #666;
+        }
+        .btn-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #a78bfa, #7c3aed);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+        .btn-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(167, 139, 250, 0.3);
+        }
+        .links {
+            text-align: center;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💡 Отчёт по лабораторной работе</h1>
+            <p class="subtitle">Веб-приложение «Конструктор Ламп» с использованием Three.js</p>
+        </header>
+
+        <div class="student-info">
+            <p><strong>Студент:</strong> Образцов Артём</p>
+            <p><strong>Учебное заведение:</strong> РГСУ (Российский государственный социальный университет)</p>
+            <p><strong>Предмет:</strong> Веб-технологии и компьютерная графика</p>
+            <p><strong>Дата выполнения:</strong> 2025 год</p>
+        </div>
+
+        <div class="section">
+            <h2>1. Введение</h2>
+            <p>
+                Целью данной лабораторной работы являлась разработка интерактивного веб-приложения для 
+                трёхмерного моделирования и конструирования ламп. Приложение позволяет пользователям 
+                создавать уникальные дизайны ламп, настраивая параметры абажура, подставки и соединительных 
+                элементов в реальном времени.
+            </p>
+            <p>
+                Проект демонстрирует возможности современных веб-технологий для работы с 3D-графикой, 
+                включая библиотеку Three.js, WebGL для аппаратного ускорения рендеринга, а также 
+                интерактивный пользовательский интерфейс.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>2. Цель и задачи работы</h2>
+            <h3>Цель:</h3>
+            <p>Разработка полнофункционального веб-приложения для генерации и визуализации 3D-моделей ламп с возможностью экспорта в формат STL.</p>
+            
+            <h3>Задачи:</h3>
+            <ul class="feature-list">
+                <li>Реализация 3D-редактора с использованием Three.js</li>
+                <li>Создание параметрической системы настройки компонентов лампы</li>
+                <li>Разработка интуитивно понятного пользовательского интерфейса</li>
+                <li>Реализация функции экспорта моделей в формат STL для 3D-печати</li>
+                <li>Добавление режима тестирования освещения в различных средах</li>
+                <li>Обеспечение поддержки undo/redo для истории действий</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>3. Используемые технологии</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <strong>HTML5</strong>
+                    <span>Структура документа</span>
+                </div>
+                <div class="tech-item">
+                    <strong>CSS3</strong>
+                    <span>Стилизация и анимации</span>
+                </div>
+                <div class="tech-item">
+                    <strong>JavaScript (ES6+)</strong>
+                    <span>Логика приложения</span>
+                </div>
+                <div class="tech-item">
+                    <strong>Three.js r128</strong>
+                    <span>3D-движок</span>
+                </div>
+                <div class="tech-item">
+                    <strong>WebGL</strong>
+                    <span>Аппаратный рендеринг</span>
+                </div>
+                <div class="tech-item">
+                    <strong>STLExporter</strong>
+                    <span>Экспорт моделей</span>
+                </div>
+                <div class="tech-item">
+                    <strong>OrbitControls</strong>
+                    <span>Управление камерой</span>
+                </div>
+                <div class="tech-item">
+                    <strong>FontSource Inter</strong>
+                    <span>Шрифты</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>4. Функциональные возможности</h2>
+            
+            <h3>4.1. Конструктор абажура</h3>
+            <table>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Описание</th>
+                    <th>Диапазон значений</th>
+                </tr>
+                <tr>
+                    <td>Тип формы</td>
+                    <td>10 вариантов геометрии</td>
+                    <td>Цилиндр, Конус, Барабан, Империя, Колокол, Сфера, Шестиугольник, Овал, Расклёшенный, Тюльпан</td>
+                </tr>
+                <tr>
+                    <td>Высота</td>
+                    <td>Вертикальный размер абажура</td>
+                    <td>60–300 мм</td>
+                </tr>
+                <tr>
+                    <td>Радиусы</td>
+                    <td>Верхний и нижний радиусы</td>
+                    <td>10–200 мм</td>
+                </tr>
+                <tr>
+                    <td>Сегменты</td>
+                    <td>Детализация сетки</td>
+                    <td>6–64 сегмента</td>
+                </tr>
+                <tr>
+                    <td>Складки</td>
+                    <td>Декоративные элементы</td>
+                    <td>0–40 складок</td>
+                </tr>
+                <tr>
+                    <td>Кривизна</td>
+                    <td>Искривление профиля</td>
+                    <td>-50…+50</td>
+                </tr>
+            </table>
+
+            <h3>4.2. Материалы и текстуры</h3>
+            <ul>
+                <li><span class="highlight">Материалы:</span> Ткань, Бумага, Стекло, Металл, Ротанг, Шёлк, Лён</li>
+                <li><span class="highlight">Узоры:</span> Полоски, Точки, Геометрия, Цветочный, Зигзаг, Волны, Ромбы</li>
+                <li><span class="highlight">Кайма:</span> Золотая, Серебряная, Тканевая, Бисер, Бахрома</li>
+                <li><span class="highlight">Прозрачность:</span> 10–100%</li>
+            </ul>
+
+            <h3>4.3. Конструктор подставки</h3>
+            <ul>
+                <li>8 типов подставок: Классическая, Современная, Индустриальная, Деревянная, Мраморная, Минималистичная, Винтажная, Керамическая</li>
+                <li>Настройка радиуса основания (25–90 мм)</li>
+                <li>Настройка высоты основания (5–25 мм)</li>
+                <li>Настройка высоты стойки (30–160 мм)</li>
+                <li>Настройка толщины стойки (2–12 мм)</li>
+                <li>Параметры материала: металличность и шероховатость</li>
+            </ul>
+
+            <h3>4.4. Соединительные элементы</h3>
+            <ul>
+                <li>6 типов соединений: Кольцо, Хомут, Шея, Кронштейн, Стержень, Адаптер</li>
+                <li>Автоматическая подгонка под размеры абажура и подставки</li>
+                <li>Настройка высоты и радиусов соединения</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>5. Режимы работы</h2>
+            
+            <h3>5.1. Режим редактирования</h3>
+            <p>
+                Основной режим работы, в котором пользователь может настраивать все параметры лампы. 
+                Интерфейс разделён на три вкладки: «Абажур», «Подставка», «Соединение». 
+                Каждая настройка мгновенно отображается в 3D-просмотре.
+            </p>
+
+            <h3>5.2. Режим тестирования</h3>
+            <p>
+                Специальный режим для визуализации лампы в различных условиях освещения:
+            </p>
+            <ul>
+                <li><span class="highlight">Ночь</span> — тёмная комната с активным источником света</li>
+                <li><span class="highlight">Вечер</span> — приглушённое окружающее освещение</li>
+                <li><span class="highlight">День</span> — яркое естественное освещение</li>
+                <li><span class="highlight">Студия</span> — профессиональное студийное освещение</li>
+            </ul>
+            <p>
+                В режиме тестирования доступна настройка цвета лампы, яркости, размера источника света 
+                и его положения относительно абажура.
+            </p>
+
+            <h3>5.3. История действий</h3>
+            <p>
+                Реализована система undo/redo с хранением до 50 последних состояний. 
+                Пользователь может отменять и повторять свои действия с помощью кнопок «←» и «→».
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>6. Экспорт моделей</h2>
+            <p>
+                Приложение поддерживает экспорт созданной модели абажура в формате <span class="highlight">STL</span> 
+                (Stereolithography) — стандартном формате для 3D-печати. Экспортируется только геометрия абажура, 
+                так как именно эта часть наиболее интересна для изготовления на 3D-принтере.
+            </p>
+            <div class="code-block">
+function downloadSTL() {
+  const shadeMesh = allMeshes.find(m => m.geometry);
+  if (!shadeMesh) { alert('Сначала создайте абажур!'); return; }
+  const exp = new STLExporter();
+  const res = exp.parse(shadeMesh, { binary: true });
+  const blob = new Blob([res], { type: 'application/octet-stream' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'lampshade.stl';
+  a.click();
+}
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>7. Архитектура приложения</h2>
+            
+            <h3>7.1. Структура кода</h3>
+            <ul>
+                <li><span class="highlight">init()</span> — инициализация сцены, камеры, рендерера и контролов</li>
+                <li><span class="highlight">updateAll()</span> — обновление всех компонентов лампы</li>
+                <li><span class="highlight">buildLamp()</span> — построение 3D-модели лампы</li>
+                <li><span class="highlight">getShapeProfile()</span> — генерация профиля формы абажура</li>
+                <li><span class="highlight">createHexGeo()</span> — создание шестиугольной геометрии</li>
+                <li><span class="highlight">addPleats()</span> — добавление складок к абажуру</li>
+                <li><span class="highlight">getShadeMat()</span> — создание материала абажура</li>
+                <li><span class="highlight">applyPattern()</span> — применение узоров к текстуре</li>
+                <li><span class="highlight">pushHistory()/undo()/redo()</span> — управление историей</li>
+            </ul>
+
+            <h3>7.2. Компоненты 3D-сцены</h3>
+            <ul>
+                <li><span class="highlight">Scene</span> — основная сцена Three.js</li>
+                <li><span class="highlight">Camera</span> — перспективная камера с углом обзора 45°</li>
+                <li><span class="highlight">Renderer</span> — WebGL-рендерер с поддержкой теней</li>
+                <li><span class="highlight">OrbitControls</span> — управление вращением и зумом камеры</li>
+                <li><span class="highlight">Lighting</span> — комбинация AmbientLight и DirectionalLight</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>8. Результаты работы</h2>
+            <p>В ходе выполнения лабораторной работы было разработано полнофункциональное веб-приложение со следующими характеристиками:</p>
+            <ul class="feature-list">
+                <li>Интерактивный 3D-редактор с плавным обновлением в реальном времени</li>
+                <li>Более 10 параметров настройки для каждого компонента лампы</li>
+                <li>7 типов материалов и 8 типов узоров для абажура</li>
+                <li>8 типов подставок и 6 типов соединений</li>
+                <li>4 режима тестирования освещения</li>
+                <li>Функция экспорта в STL для 3D-печати</li>
+                <li>Система истории действий (undo/redo)</li>
+                <li>Адаптивный дизайн интерфейса</li>
+                <li>Предпросмотр каждого компонента в мини-окнах</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>9. Выводы</h2>
+            <p>
+                В результате выполнения лабораторной работы было создано современное веб-приложение для 
+                3D-моделирования ламп. Проект продемонстрировал возможности использования библиотеки Three.js 
+                для создания интерактивных 3D-инструментов непосредственно в браузере.
+            </p>
+            <p>
+                Основные достижения:
+            </p>
+            <ul>
+                <li>Освоены принципы работы с WebGL через Three.js</li>
+                <li>Реализована параметрическая генерация 3D-геометрии</li>
+                <li>Применены техники процедурной генерации текстур</li>
+                <li>Реализован экспорт в формат, совместимый с 3D-печатью</li>
+                <li>Создан эргономичный пользовательский интерфейс</li>
+            </ul>
+            <p>
+                Приложение готово к использованию и может быть расширено дополнительными функциями, 
+                такими как сохранение проектов, библиотека готовых дизайнов или совместная работа.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>10. Список литературы</h2>
+            <ol>
+                <li>Three.js Documentation — https://threejs.org/docs/</li>
+                <li>WebGL Programming Guide — Addison-Wesley, 2013</li>
+                <li>MDN Web Docs — https://developer.mozilla.org/</li>
+                <li>STL File Format Specification — 3D Systems, Inc.</li>
+                <li>FontSource Inter — https://fontsource.org/fonts/inter</li>
+            </ol>
+        </div>
+
+        <div class="links">
+            <a href="index.html" class="btn-link">🔧 Открыть конструктор</a>
+            <a href="presentation.html" class="btn-link">📊 Открыть презентацию</a>
+        </div>
+
+        <footer>
+            <p>© 2025 Образцов Артём, РГСУ. Все права защищены.</p>
+            <p>Лабораторная работа по курсу «Веб-технологии и компьютерная графика»</p>
+        </footer>
+    </div>
+</body>
+</html>
