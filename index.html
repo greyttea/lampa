@@ -1,1 +1,1068 @@
-<div>Тут должна быть лампа</div>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Конструктор Ламп</title>
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/400.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/600.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/700.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#08080e;color:#ddd;overflow:hidden;height:100vh}
+#app{display:flex;height:100vh}
+.sb{width:340px;background:rgba(10,10,18,0.98);border-right:1px solid rgba(255,255,255,0.05);display:flex;flex-direction:column;overflow:hidden;z-index:10;transition:all 0.3s}
+.sb.hidden{width:0;min-width:0;overflow:hidden;border:none;opacity:0}
+.sb-head{padding:14px 16px 10px;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0}
+.sb-head h1{font-size:15px;font-weight:700;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sb-head p{font-size:9px;color:#555;margin-top:2px}
+.nav-bar{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);flex-shrink:0}
+.nav-btn{width:30px;height:30px;border-radius:7px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#777;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.nav-btn:hover:not(:disabled){background:rgba(255,255,255,0.08);color:#bbb}
+.nav-btn:disabled{opacity:0.3;cursor:not-allowed}
+.nav-tabs{display:flex;gap:3px;flex:1}
+.nav-tab{padding:6px 8px;border-radius:6px;font-size:10px;font-weight:600;color:#777;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.nav-tab:hover{color:#aaa;background:rgba(255,255,255,0.04)}
+.nav-tab.active{color:#a78bfa;background:rgba(167,139,250,0.12)}
+.sb-content{flex:1;overflow-y:auto;padding:12px 14px;scrollbar-width:thin;scrollbar-color:#222 transparent}
+.sb-content::-webkit-scrollbar{width:3px}
+.sb-content::-webkit-scrollbar-thumb{background:#222;border-radius:2px}
+.panel{display:none}
+.panel.active{display:block}
+.section{margin-bottom:14px}
+.sec-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#666;margin-bottom:8px}
+.p-row{margin-bottom:9px}
+.p-label{display:flex;justify-content:space-between;margin-bottom:3px}
+.p-label span{font-size:11px;color:#888}
+.p-val{font-size:11px;color:#a78bfa;font-weight:600}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:#1a1a2e;border-radius:2px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:linear-gradient(135deg,#a78bfa,#7c3aed);border-radius:50%;cursor:pointer;box-shadow:0 0 6px rgba(167,139,250,0.25)}
+select{width:100%;padding:6px 8px;background:#12121e;border:1px solid rgba(255,255,255,0.06);border-radius:6px;color:#ccc;font-size:10px;font-family:'Inter',sans-serif;outline:none;cursor:pointer;appearance:none;background-image:url("image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+select:focus{border-color:#a78bfa}
+.c-row{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.c-pick{width:28px;height:28px;border-radius:6px;overflow:hidden;border:2px solid rgba(255,255,255,0.08);flex-shrink:0;position:relative}
+.c-pick input[type=color]{position:absolute;top:-6px;left:-6px;width:calc(100% + 12px);height:calc(100% + 12px);border:none;cursor:pointer}
+.sw{width:20px;height:20px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:all 0.15s}
+.sw:hover,.sw.active{border-color:#fff;transform:scale(1.1)}
+.btn{width:100%;padding:8px;border:none;border-radius:7px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-rand{background:rgba(255,255,255,0.05);color:#aaa;border:1px solid rgba(255,255,255,0.06)}
+.btn-rand:hover{background:rgba(255,255,255,0.08);color:#fff}
+.btn-stl{background:linear-gradient(135deg,#059669,#34d399);color:#fff}
+.btn-stl:hover{box-shadow:0 3px 12px rgba(5,150,105,0.3)}
+.btn-test{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#111;font-weight:700;font-size:12px;padding:10px}
+.btn-test:hover{box-shadow:0 3px 12px rgba(245,158,11,0.35)}
+.btn-test:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none}
+.btn-back{background:rgba(167,139,250,0.15);color:#a78bfa;border:1px solid rgba(167,139,250,0.3);font-weight:700}
+.btn-back:hover{background:rgba(167,139,250,0.25)}
+.btn-group{display:flex;gap:5px;margin-bottom:10px}
+.btn-group .btn{flex:1}
+.divider{height:1px;background:rgba(255,255,255,0.04);margin:10px 0}
+.error-panel{display:none;padding:8px 10px;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);border-radius:7px;margin-bottom:12px;font-size:10px;color:#f87171;line-height:1.5}
+.error-panel.show{display:flex;gap:8px;align-items:start}
+.shape-preview{width:100%;height:100px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:8px;margin-bottom:10px;overflow:hidden;position:relative}
+.shape-preview canvas{width:100%;height:100%}
+.shape-label{position:absolute;bottom:4px;left:6px;font-size:9px;color:#555}
+.prev{flex:1;position:relative}
+#canvas-container{width:100%;height:100%;display:block}
+.badge{position:absolute;top:14px;left:14px;padding:6px 12px;border-radius:14px;font-size:10px;font-weight:600;z-index:10;backdrop-filter:blur(8px)}
+.badge.edit{background:rgba(167,139,250,0.1);color:#a78bfa;border:1px solid rgba(167,139,250,0.2)}
+.badge.test{background:rgba(245,158,11,0.1);color:#fbbf24;border:1px solid rgba(245,158,11,0.2)}
+.hint{position:absolute;top:14px;left:50%;transform:translateX(-50%);padding:5px 12px;background:rgba(0,0,0,0.5);border-radius:12px;font-size:9px;color:#555;z-index:10}
+.env-bar{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:10;flex-wrap:wrap;justify-content:center}
+.e-btn{padding:5px 11px;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:14px;color:#888;font-size:9px;font-family:'Inter',sans-serif;cursor:pointer;transition:all 0.2s}
+.e-btn:hover{color:#ccc}
+.e-btn.active{background:rgba(245,158,11,0.15);color:#fbbf24;border-color:rgba(245,158,11,0.25)}
+.glow-dot{width:6px;height:6px;border-radius:50%;display:inline-block;vertical-align:middle;margin-right:4px}
+.test-float{position:absolute;top:16px;right:16px;z-index:10;display:flex;flex-direction:column;gap:6px}
+.test-float .btn{width:180px;padding:8px 12px;font-size:11px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="sb" id="sidebar">
+    <div class="sb-head">
+      <h1>💡 Конструктор Ламп</h1>
+      <p id="subText">Создайте уникальную лампу</p>
+    </div>
+    <div class="nav-bar">
+      <button class="nav-btn" id="undoBtn" onclick="undo()" disabled title="Отменить">←</button>
+      <button class="nav-btn" id="redoBtn" onclick="redo()" disabled title="Повторить">→</button>
+      <div class="nav-tabs">
+        <div class="nav-tab active" data-t="shade" onclick="switchTab('shade')">🔆 Абажур</div>
+        <div class="nav-tab" data-t="base" onclick="switchTab('base')">🏗 Подставка</div>
+        <div class="nav-tab" data-t="joint" onclick="switchTab('joint')">🔗 Соединение</div>
+      </div>
+    </div>
+    <div class="sb-content">
+      <div id="errorPanel" class="error-panel"><span>⚠️</span><span id="errorText"></span></div>
+
+      <div id="shadePanel" class="panel active">
+        <div class="shape-preview" id="shadePreview"><div class="shape-label">Предпросмотр абажура</div></div>
+        <div class="btn-group">
+          <button class="btn btn-rand" onclick="randomizePart('shade')">🎲 Случайный</button>
+          <button class="btn btn-stl" onclick="downloadSTL()">⬇ STL</button>
+        </div>
+        <div class="section">
+          <div class="sec-title">📐 Форма</div>
+          <div class="p-row"><div class="p-label"><span>Тип</span></div>
+            <select id="s_shape" onchange="pushHistory();updateAll()">
+              <option value="cylinder">Цилиндр</option><option value="cone">Конус</option><option value="drum">Барабан</option>
+              <option value="empire">Империя</option><option value="bell">Колокол</option><option value="sphere">Сфера</option>
+              <option value="hexagon">Шестиугольник</option><option value="oval">Овал</option><option value="flare">Расклёшенный</option><option value="tulip">Тюльпан</option>
+            </select></div>
+          <div class="p-row"><div class="p-label"><span>Высота</span><span class="p-val" id="s_heightVal">180</span></div>
+            <input type="range" id="s_height" min="60" max="300" value="180" oninput="uv('s_height');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Верхний радиус</span><span class="p-val" id="s_topRVal">50</span></div>
+            <input type="range" id="s_topR" min="10" max="150" value="50" oninput="uv('s_topR');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Нижний радиус</span><span class="p-val" id="s_botRVal">100</span></div>
+            <input type="range" id="s_botR" min="20" max="200" value="100" oninput="uv('s_botR');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Сегменты</span><span class="p-val" id="s_segVal">32</span></div>
+            <input type="range" id="s_seg" min="6" max="64" value="32" step="1" oninput="uv('s_seg');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Складки</span><span class="p-val" id="s_pleatsVal">0</span></div>
+            <input type="range" id="s_pleats" min="0" max="40" value="0" step="1" oninput="uv('s_pleats');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Кривизна</span><span class="p-val" id="s_curvVal">0</span></div>
+            <input type="range" id="s_curv" min="-50" max="50" value="0" oninput="uv('s_curv');pushHistory();updateAll()"></div>
+        </div>
+        <div class="divider"></div>
+        <div class="section">
+          <div class="sec-title">🎨 Материал и узор</div>
+          <div class="p-row"><div class="p-label"><span>Материал</span></div>
+            <select id="s_mat" onchange="pushHistory();updateAll()">
+              <option value="fabric">Ткань</option><option value="paper">Бумага</option><option value="glass">Стекло</option>
+              <option value="metal">Металл</option><option value="rattan">Ротанг</option><option value="silk">Шёлк</option><option value="linen">Лён</option>
+            </select></div>
+          <div class="p-row"><div class="p-label"><span>Цвет</span></div>
+            <div class="c-row"><div class="c-pick"><input type="color" id="s_color" value="#f5e6d3" oninput="pushHistory();updateAll()"></div>
+            <div id="sSwatches"></div></div></div>
+          <div class="p-row"><div class="p-label"><span>Прозрачность</span><span class="p-val" id="s_opVal">80%</span></div>
+            <input type="range" id="s_op" min="10" max="100" value="80" oninput="uv('s_op');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Узор</span></div>
+            <select id="s_pat" onchange="pushHistory();updateAll()">
+              <option value="none">Без узора</option><option value="stripes">Полоски</option><option value="dots">Точки</option>
+              <option value="geometric">Геометрия</option><option value="floral">Цветочный</option><option value="zigzag">Зигзаг</option><option value="waves">Волны</option><option value="diamonds">Ромбы</option>
+            </select></div>
+          <div class="p-row"><div class="p-label"><span>Кайма</span></div>
+            <select id="s_trim" onchange="pushHistory();updateAll()">
+              <option value="none">Без каймы</option><option value="gold">Золотая</option><option value="silver">Серебряная</option>
+              <option value="fabric">Тканевая</option><option value="beaded">Бисер</option><option value="fringe">Бахрома</option>
+            </select></div>
+        </div>
+      </div>
+
+      <div id="basePanel" class="panel">
+        <div class="shape-preview" id="basePreview"><div class="shape-label">Предпросмотр подставки</div></div>
+        <div class="btn-group">
+          <button class="btn btn-rand" onclick="randomizePart('base')">🎲 Случайная</button>
+          <button class="btn btn-stl" onclick="downloadSTL()">⬇ STL</button>
+        </div>
+        <div class="section">
+          <div class="sec-title">🏗 Подставка</div>
+          <div class="p-row"><div class="p-label"><span>Тип</span></div>
+            <select id="b_type" onchange="pushHistory();updateAll()">
+              <option value="classic">Классическая</option><option value="modern">Современная</option><option value="industrial">Индустриальная</option>
+              <option value="wood">Деревянная</option><option value="marble">Мраморная</option><option value="minimal">Минималистичная</option>
+              <option value="vintage">Винтажная</option><option value="ceramic">Керамическая</option>
+            </select></div>
+          <div class="p-row"><div class="p-label"><span>Радиус основания</span><span class="p-val" id="b_baseRVal">50</span></div>
+            <input type="range" id="b_baseR" min="25" max="90" value="50" oninput="uv('b_baseR');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Высота основания</span><span class="p-val" id="b_baseHVal">10</span></div>
+            <input type="range" id="b_baseH" min="5" max="25" value="10" oninput="uv('b_baseH');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Высота стойки</span><span class="p-val" id="b_poleHVal">80</span></div>
+            <input type="range" id="b_poleH" min="30" max="160" value="80" oninput="uv('b_poleH');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Толщина стойки</span><span class="p-val" id="b_poleTVal">4</span></div>
+            <input type="range" id="b_poleT" min="2" max="12" value="4" oninput="uv('b_poleT');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Цвет</span></div>
+            <div class="c-row"><div class="c-pick"><input type="color" id="b_color" value="#333333" oninput="pushHistory();updateAll()"></div>
+            <div id="bSwatches"></div></div></div>
+          <div class="p-row"><div class="p-label"><span>Металличность</span><span class="p-val" id="b_metalVal">70%</span></div>
+            <input type="range" id="b_metal" min="0" max="100" value="70" oninput="uv('b_metal');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Шероховатость</span><span class="p-val" id="b_roughVal">30%</span></div>
+            <input type="range" id="b_rough" min="0" max="100" value="30" oninput="uv('b_rough');pushHistory();updateAll()"></div>
+        </div>
+      </div>
+
+      <div id="jointPanel" class="panel">
+        <div class="shape-preview" id="jointPreview"><div class="shape-label">Предпросмотр соединения</div></div>
+        <div class="btn-group">
+          <button class="btn btn-rand" onclick="randomizePart('joint')">🎲 Случайное</button>
+          <button class="btn btn-stl" onclick="downloadSTL()">⬇ STL</button>
+        </div>
+        <div class="section">
+          <div class="sec-title">🔗 Соединение</div>
+          <div class="p-row"><div class="p-label"><span>Тип</span></div>
+            <select id="j_type" onchange="pushHistory();updateAll()">
+              <option value="ring">Простое кольцо</option><option value="collar">Декоративный воротник</option>
+              <option value="neck">Шейка</option><option value="bracket">Кронштейн</option><option value="stem">Стержень</option>
+              <option value="chain">Цепочка</option><option value="cable">Кабель</option><option value="adapter">Адаптер</option>
+            </select></div>
+          <div class="p-row"><div class="p-label"><span>Высота</span><span class="p-val" id="j_heightVal">15</span></div>
+            <input type="range" id="j_height" min="5" max="50" value="15" oninput="uv('j_height');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Верхний радиус</span><span class="p-val" id="j_topRVal">100</span></div>
+            <input type="range" id="j_topR" min="15" max="200" value="100" oninput="uv('j_topR');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Нижний радиус</span><span class="p-val" id="j_botRVal">4</span></div>
+            <input type="range" id="j_botR" min="2" max="15" value="4" oninput="uv('j_botR');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Цвет</span></div>
+            <div class="c-row"><div class="c-pick"><input type="color" id="j_color" value="#c0c0c0" oninput="pushHistory();updateAll()"></div>
+            <div id="jSwatches"></div></div></div>
+          <div class="p-row"><div class="p-label"><span>Металличность</span><span class="p-val" id="j_metalVal">80%</span></div>
+            <input type="range" id="j_metal" min="0" max="100" value="80" oninput="uv('j_metal');pushHistory();updateAll()"></div>
+        </div>
+        <div class="divider"></div>
+        <div class="section">
+          <div class="sec-title">💡 Лампочка</div>
+          <div class="p-row"><div class="p-label"><span>Цвет</span></div>
+            <div class="c-row"><div class="c-pick"><input type="color" id="bulbColor" value="#ffdd88" oninput="pushHistory();updateAll()"></div>
+            <div id="bulbSwatches"></div></div></div>
+          <div class="p-row"><div class="p-label"><span>Яркость</span><span class="p-val" id="t_brVal">75%</span></div>
+            <input type="range" id="t_br" min="0" max="100" value="75" oninput="uv('t_br');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Размер</span><span class="p-val" id="t_bsVal">20</span></div>
+            <input type="range" id="t_bs" min="10" max="40" value="20" oninput="uv('t_bs');pushHistory();updateAll()"></div>
+          <div class="p-row"><div class="p-label"><span>Позиция</span><span class="p-val" id="t_bposVal">30</span></div>
+            <input type="range" id="t_bpos" min="0" max="100" value="30" oninput="uv('t_bpos');pushHistory();updateAll()"></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="btn-group">
+        <button class="btn btn-rand" onclick="randomizeAll()" style="flex:1.2">🎲 Случайная лампа</button>
+      </div>
+      <button class="btn btn-test" id="testBtn" onclick="enterTestMode()">▶ Тестировать</button>
+    </div>
+  </div>
+
+  <div class="prev" id="previewArea">
+    <canvas id="canvas-container"></canvas>
+    <div class="badge edit" id="modeBadge">✏️ РЕДАКТИРОВАНИЕ</div>
+    <div class="hint" id="hint">🖱 Вращайте • Колёсико масштаб</div>
+    <div class="env-bar" id="envBar" style="display:none">
+      <button class="e-btn" onclick="setTE('dark',this)">Тёмная</button>
+      <button class="e-btn" onclick="setTE('night',this)">Ночь</button>
+      <button class="e-btn" onclick="setTE('evening',this)">Вечер</button>
+      <button class="e-btn" onclick="setTE('sunset',this)">Закат</button>
+      <button class="e-btn" onclick="setTE('cloudy',this)">Облачно</button>
+      <button class="e-btn active" onclick="setTE('day',this)">День</button>
+      <button class="e-btn" onclick="setTE('studio',this)">Студия</button>
+    </div>
+    <div class="test-float" id="testFloat" style="display:none">
+      <button class="btn btn-back" onclick="exitTestMode()">← Редактировать</button>
+      <button class="btn btn-stl" onclick="downloadSTL()">⬇ STL</button>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {STLExporter} from 'three/addons/exporters/STLExporter.js';
+
+let mode='edit';
+let undoStack=[],redoStack=[];
+let scene,camera,renderer,controls;
+let allMeshes=[],allLights=[],envLights=[];
+let windowGlass=null;
+let previewRenderers={};
+
+const swatchSets={
+  sSwatches:['#f5e6d3','#2c2c2c','#c4a882','#e8d5c4','#d4a574','#8b4513','#4a6741','#1a3a5c','#800020','#f0f0f0'],
+  bSwatches:['#333333','#c0c0c0','#d4a017','#8b4513','#f5f5f5','#1a1a1a','#c47451','#5c3d2e'],
+  jSwatches:['#c0c0c0','#d4a017','#333333','#8b4513','#f5f5f5','#1a1a1a'],
+  bulbSwatches:['#ffdd88','#ffffff','#ff6b35','#4a9eff','#ff4a8d','#a78bfa','#34d399']
+};
+
+function init(){
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(45,1,1,10000);
+  camera.position.set(300,250,400);
+  const c=document.getElementById('canvas-container');
+  renderer=new THREE.WebGLRenderer({canvas:c,antialias:true,alpha:false});
+  renderer.setSize(c.parentElement.clientWidth,c.parentElement.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.0;
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  controls=new OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true;controls.dampingFactor=0.08;
+  controls.minDistance=80;controls.maxDistance=900;controls.maxPolarAngle=Math.PI*0.85;
+  buildSwatches();
+  setEditMode();
+  pushHistory();
+  updateAll();
+  initShapePreviews();
+  window.addEventListener('resize',onResize);
+  animate();
+}
+
+function onResize(){
+  const c=document.getElementById('canvas-container');
+  const w=c.parentElement.clientWidth,h=c.parentElement.clientHeight;
+  camera.aspect=w/h;camera.updateProjectionMatrix();
+  renderer.setSize(w,h);
+}
+
+function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera);}
+
+function buildSwatches(){
+  for(const[id,colors]of Object.entries(swatchSets)){
+    const cont=document.getElementById(id);
+    if(!cont)continue;
+    colors.forEach(c=>{
+      const d=document.createElement('div');d.className='sw';d.style.background=c;
+      d.onclick=()=>{
+        const pick=cont.parentElement.querySelector('.c-pick input');
+        if(pick){pick.value=c;pushHistory();updateAll();}
+      };
+      cont.appendChild(d);
+    });
+  }
+}
+
+function switchTab(t){
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.toggle('active',x.dataset.t===t));
+  document.getElementById('shadePanel').classList.toggle('active',t==='shade');
+  document.getElementById('basePanel').classList.toggle('active',t==='base');
+  document.getElementById('jointPanel').classList.toggle('active',t==='joint');
+  updateShapePreviews();
+}
+
+function getParams(){
+  const ids=['s_shape','s_height','s_topR','s_botR','s_seg','s_pleats','s_curv','s_mat','s_color','s_op','s_pat','s_trim',
+    'b_type','b_baseR','b_baseH','b_poleH','b_poleT','b_color','b_metal','b_rough',
+    'j_type','j_height','j_topR','j_botR','j_color','j_metal',
+    'bulbColor','t_br','t_bs','t_bpos'];
+  const p={};ids.forEach(id=>{const el=document.getElementById(id);if(el)p[id]=el.value;});
+  return p;
+}
+
+function setParams(p){
+  Object.entries(p).forEach(([id,v])=>{
+    const el=document.getElementById(id);
+    if(el){el.value=v;
+      if(el.type==='range'){
+        const ve=document.getElementById(id+'Val');
+        if(ve)ve.textContent=['s_op','b_metal','b_rough','j_metal','t_br'].includes(id)?v+'%':v;
+      }
+    }
+  });
+}
+
+function pushHistory(){
+  undoStack.push(JSON.stringify(getParams()));
+  if(undoStack.length>30)undoStack.shift();
+  redoStack=[];
+  updateHistBtns();
+}
+
+function undo(){
+  if(undoStack.length<2)return;
+  redoStack.push(undoStack.pop());
+  setParams(JSON.parse(undoStack[undoStack.length-1]));
+  updateAll();updateHistBtns();
+}
+
+function redo(){
+  if(!redoStack.length)return;
+  undoStack.push(redoStack.pop());
+  setParams(JSON.parse(undoStack[undoStack.length-1]));
+  updateAll();updateHistBtns();
+}
+
+function updateHistBtns(){
+  document.getElementById('undoBtn').disabled=undoStack.length<2;
+  document.getElementById('redoBtn').disabled=!redoStack.length;
+}
+
+function uv(id){
+  const el=document.getElementById(id),ve=document.getElementById(id+'Val');
+  if(ve)ve.textContent=['s_op','b_metal','b_rough','j_metal','t_br'].includes(id)?el.value+'%':el.value;
+}
+
+function getShapeProfile(sh,ht,topR,botR,curv){
+  const pts=[];const steps=40;
+  for(let i=0;i<=steps;i++){
+    const t=i/steps;let r;
+    switch(sh){
+      case'cylinder':case'cone':r=topR+(botR-topR)*t;break;
+      case'drum':r=topR+(botR-topR)*t+Math.sin(t*Math.PI)*((topR+botR)/2*0.05);break;
+      case'empire':{const eT=t<0.5?t*2:1-(t-0.5)*2;r=topR+(botR-topR)*t+Math.sin(eT*Math.PI)*curv*30;break;}
+      case'bell':r=topR+(botR-topR)*Math.pow(t,0.5)+Math.sin(t*Math.PI)*10*curv;break;
+      case'sphere':{const sR=Math.max(topR,botR)*1.2;r=sR*Math.sin(t*Math.PI)*0.5+sR*0.3;break;}
+      case'hexagon':r=topR+(botR-topR)*t;break;
+      case'oval':{const oT=t*Math.PI;r=((topR+botR)/2)+((botR-topR)/2)*Math.cos(oT-Math.PI)+Math.sin(oT)*curv*20;break;}
+      case'flare':r=topR+(botR-topR)*t*t;break;
+      case'tulip':{const tT=Math.pow(t,0.7);r=topR+(botR-topR)*tT-Math.pow(1-t,2)*0.3*topR;break;}
+      default:r=topR+(botR-topR)*t;
+    }
+    pts.push(new THREE.Vector2(Math.max(r,2),ht*(1-t)));
+  }
+  return pts;
+}
+
+function genTexture(){
+  const c=document.createElement('canvas');c.width=256;c.height=256;
+  const ctx=c.getContext('2d');
+  const col=document.getElementById('s_color').value;
+  const pat=document.getElementById('s_pat').value;
+  ctx.fillStyle=col;ctx.fillRect(0,0,256,256);
+  ctx.globalAlpha=0.04;
+  for(let i=0;i<3000;i++){ctx.fillStyle=Math.random()>0.5?'#fff':'#000';ctx.fillRect(Math.random()*256,Math.random()*256,1,1);}
+  ctx.globalAlpha=1;
+  const rgba=(h,a)=>`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`;
+  switch(pat){
+    case'stripes':ctx.strokeStyle=rgba(col,0.25);ctx.lineWidth=2;for(let x=0;x<256;x+=12){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,256);ctx.stroke();}break;
+    case'dots':ctx.fillStyle=rgba(col,0.3);for(let x=0;x<256;x+=20)for(let y=0;y<256;y+=20){ctx.beginPath();ctx.arc(x+10,y+10,4,0,Math.PI*2);ctx.fill();}break;
+    case'geometric':ctx.strokeStyle=rgba(col,0.25);ctx.lineWidth=1.5;for(let x=0;x<256;x+=30)for(let y=0;y<256;y+=30){ctx.beginPath();ctx.moveTo(x+15,y);ctx.lineTo(x+30,y+15);ctx.lineTo(x+15,y+30);ctx.lineTo(x,y+15);ctx.closePath();ctx.stroke();}break;
+    case'floral':for(let i=0;i<10;i++){const fx=Math.random()*256,fy=Math.random()*256;ctx.fillStyle=rgba(col,0.25);for(let p=0;p<5;p++){const a=(p/5)*Math.PI*2;ctx.beginPath();ctx.ellipse(fx+Math.cos(a)*6,fy+Math.sin(a)*6,5,3,a,0,Math.PI*2);ctx.fill();}}break;
+    case'zigzag':ctx.strokeStyle=rgba(col,0.25);ctx.lineWidth=2;for(let y=0;y<256;y+=18){ctx.beginPath();for(let x=0;x<256;x+=10)ctx.lineTo(x,y+(x%20===0?-4:4));ctx.stroke();}break;
+    case'waves':ctx.strokeStyle=rgba(col,0.25);ctx.lineWidth=2;for(let y=0;y<256;y+=15){ctx.beginPath();for(let x=0;x<256;x+=2)ctx.lineTo(x,y+Math.sin(x/12)*5);ctx.stroke();}break;
+    case'diamonds':ctx.strokeStyle=rgba(col,0.25);ctx.lineWidth=1.5;for(let x=0;x<256;x+=25)for(let y=0;y<256;y+=25){ctx.beginPath();ctx.moveTo(x+12,y);ctx.lineTo(x+24,y+12);ctx.lineTo(x+12,y+24);ctx.lineTo(x,y+12);ctx.closePath();ctx.stroke();}break;
+  }
+  const tex=new THREE.CanvasTexture(c);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;return tex;
+}
+
+function getShadeMat(op){
+  const col=document.getElementById('s_color').value;
+  const mt=document.getElementById('s_mat').value;
+  const tex=genTexture();
+  const base={color:new THREE.Color(col),map:tex,transparent:op<1,opacity:op,side:THREE.DoubleSide};
+  if(mode==='edit'){base.emissive=new THREE.Color(col).multiplyScalar(0.08);base.emissiveIntensity=0.3;}
+  switch(mt){
+    case'fabric':return{...base,roughness:0.85,metalness:0};
+    case'paper':return{...base,roughness:0.95,metalness:0};
+    case'glass':return{...base,roughness:0.05,metalness:0.1,transparent:true,opacity:Math.min(op,0.45)};
+    case'metal':return{...base,roughness:0.2,metalness:0.9,opacity:Math.min(op,0.85)};
+    case'rattan':return{...base,roughness:0.9,metalness:0};
+    case'silk':return{...base,roughness:0.3,metalness:0.2};
+    case'linen':return{...base,roughness:0.9,metalness:0};
+    default:return base;
+  }
+}
+
+function clearScene(){
+  allMeshes.forEach(m=>{scene.remove(m);m.geometry?.dispose();if(Array.isArray(m.material))m.material.forEach(x=>x.dispose());else m.material?.dispose();});
+  allMeshes=[];
+  envLights.forEach(l=>scene.remove(l));envLights=[];
+  allLights.forEach(l=>scene.remove(l));allLights=[];
+  windowGlass=null;
+}
+
+function getLampTopY(){
+  const bt=document.getElementById('b_type').value;
+  const bH=parseFloat(document.getElementById('b_baseH').value);
+  const pH=parseFloat(document.getElementById('b_poleH').value);
+  switch(bt){
+    case'classic':return bH+pH+6;
+    case'modern':return bH*0.7+pH;
+    case'industrial':return bH*0.6+pH+5;
+    case'wood':return bH+pH;
+    case'marble':return bH*1.5+pH;
+    case'minimal':return 4+pH;
+    case'vintage':return bH*0.5+pH;
+    case'ceramic':return bH*1.2+pH;
+    default:return bH+pH;
+  }
+}
+
+function buildLamp(){
+  clearScene();
+
+  const s_shape=document.getElementById('s_shape').value;
+  const s_ht=parseFloat(document.getElementById('s_height').value);
+  const s_topR=parseFloat(document.getElementById('s_topR').value);
+  const s_botR=parseFloat(document.getElementById('s_botR').value);
+  const s_seg=parseInt(document.getElementById('s_seg').value);
+  const s_pleats=parseInt(document.getElementById('s_pleats').value);
+  const s_curv=parseFloat(document.getElementById('s_curv').value)/100;
+  const s_op=parseFloat(document.getElementById('s_op').value)/100;
+  const s_trim=document.getElementById('s_trim').value;
+
+  const b_type=document.getElementById('b_type').value;
+  const b_baseR=parseFloat(document.getElementById('b_baseR').value);
+  const b_baseH=parseFloat(document.getElementById('b_baseH').value);
+  const b_poleH=parseFloat(document.getElementById('b_poleH').value);
+  const b_poleT=parseFloat(document.getElementById('b_poleT').value);
+  const b_color=document.getElementById('b_color').value;
+  const b_metal=parseFloat(document.getElementById('b_metal').value)/100;
+  const b_rough=parseFloat(document.getElementById('b_rough').value)/100;
+
+  const j_type=document.getElementById('j_type').value;
+  const j_ht=parseFloat(document.getElementById('j_height').value);
+  const j_topR=parseFloat(document.getElementById('j_topR').value);
+  const j_botR=parseFloat(document.getElementById('j_botR').value);
+  const j_color=document.getElementById('j_color').value;
+  const j_metal=parseFloat(document.getElementById('j_metal').value)/100;
+
+  const bMat=new THREE.MeshStandardMaterial({color:new THREE.Color(b_color),metalness:b_metal,roughness:b_rough});
+  const jMat=new THREE.MeshStandardMaterial({color:new THREE.Color(j_color),metalness:j_metal,roughness:0.3});
+
+  let lampTop=0;
+
+  switch(b_type){
+    case'classic':{
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.85,b_baseR,b_baseH,32),bMat),0,b_baseH/2,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT,b_poleT,b_poleH,16),bMat),0,b_baseH+b_poleH/2,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT+4,b_poleT+3,6,16),bMat),0,b_baseH+b_poleH+3,0);
+      lampTop=b_baseH+b_poleH+6;break;
+    }
+    case'modern':{
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR,b_baseR*0.7,b_baseH*0.7,6),bMat),0,b_baseH*0.35,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT*0.8,b_poleT,b_poleH,8),bMat),0,b_baseH*0.7+b_poleH/2,0);
+      lampTop=b_baseH*0.7+b_poleH;break;
+    }
+    case'industrial':{
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.9,b_baseR,b_baseH*0.6,8),bMat),0,b_baseH*0.3,0);
+      for(let i=0;i<3;i++){const a=(i/3)*Math.PI*2;
+        addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT*0.6,b_poleT*0.6,b_poleH,12),bMat),
+          Math.cos(a)*b_baseR*0.3,b_baseH*0.6+b_poleH/2,Math.sin(a)*b_baseR*0.3);
+      }
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.5,b_baseR*0.5,5,32),bMat),0,b_baseH*0.6+b_poleH+2.5,0);
+      lampTop=b_baseH*0.6+b_poleH+5;break;
+    }
+    case'wood':{
+      addM(new THREE.Mesh(new THREE.BoxGeometry(b_baseR*2,b_baseH,b_baseR*2),bMat),0,b_baseH/2,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT*1.2,b_poleT*1.5,b_poleH,12),bMat),0,b_baseH+b_poleH/2,0);
+      lampTop=b_baseH+b_poleH;break;
+    }
+    case'marble':{
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR,b_baseR*0.9,b_baseH*1.5,32),bMat),0,b_baseH*0.75,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT,b_poleT,b_poleH,16),bMat),0,b_baseH*1.5+b_poleH/2,0);
+      addM(new THREE.Mesh(new THREE.TorusGeometry(b_poleT+3,2,8,16),bMat),0,b_baseH*1.5+b_poleH,0);
+      lampTop=b_baseH*1.5+b_poleH;break;
+    }
+    case'minimal':{
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.6,b_baseR*0.6,4,32),bMat),0,2,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT*0.7,b_poleT*0.7,b_poleH,12),bMat),0,4+b_poleH/2,0);
+      lampTop=4+b_poleH;break;
+    }
+    case'vintage':{
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.7,b_baseR,b_baseH*0.5,32),bMat),0,b_baseH*0.25,0);
+      addM(new THREE.Mesh(new THREE.SphereGeometry(b_baseR*0.4,32,16,0,Math.PI*2,0,Math.PI/2),bMat),0,b_baseH*0.5,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT,b_poleT*1.1,b_poleH,12),bMat),0,b_baseH*0.5+b_poleH/2,0);
+      lampTop=b_baseH*0.5+b_poleH;break;
+    }
+    case'ceramic':{
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_baseR*0.6,b_baseR,b_baseH*1.2,32),bMat),0,b_baseH*0.6,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(b_poleT,b_poleT*1.3,b_poleH,16),bMat),0,b_baseH*1.2+b_poleH/2,0);
+      lampTop=b_baseH*1.2+b_poleH;break;
+    }
+  }
+
+  const jointY=lampTop;
+  switch(j_type){
+    case'ring':{
+      addM(new THREE.Mesh(new THREE.TorusGeometry(j_topR,3,8,Math.max(s_seg,16)),jMat),0,jointY+1.5,0);
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(Math.max(j_botR+1,2),Math.max(j_botR+1,2),j_ht,16),jMat),0,jointY+j_ht/2,0);
+      break;
+    }
+    case'collar':{
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(j_topR+5,j_botR+3,j_ht,24),jMat),0,jointY+j_ht/2,0);
+      addM(new THREE.Mesh(new THREE.TorusGeometry(j_topR+5,4,8,Math.max(s_seg,16)),jMat),0,jointY+j_ht,0);
+      break;
+    }
+    case'neck':{
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(Math.max(j_topR*0.3,2),j_botR+2,j_ht,20),jMat),0,jointY+j_ht/2,0);
+      break;
+    }
+    case'bracket':{
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(Math.max(j_botR+1,2),Math.max(j_botR+1,2),j_ht,12),jMat),0,jointY+j_ht/2,0);
+      for(let i=0;i<4;i++){const a=(i/4)*Math.PI*2;
+        addM(new THREE.Mesh(new THREE.BoxGeometry(2,2,Math.max(j_topR*0.6,2)),jMat),
+          Math.cos(a)*j_topR*0.4,jointY+j_ht*0.7,Math.sin(a)*j_topR*0.4);
+      }
+      break;
+    }
+    case'stem':{
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(Math.max(j_botR,2),Math.max(j_botR,2),j_ht,12),jMat),0,jointY+j_ht/2,0);
+      break;
+    }
+    case'chain':{
+      for(let i=0;i<Math.min(Math.floor(j_ht/5),12);i++){
+        const ch=addM(new THREE.Mesh(new THREE.TorusGeometry(3,1,8,12),jMat),0,jointY+i*5+2.5,0);
+        ch.rotation.y=(i%2)*Math.PI/2;
+      }
+      break;
+    }
+    case'cable':{
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,j_ht,8),jMat),0,jointY+j_ht/2,0);
+      break;
+    }
+    case'adapter':{
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(j_topR*0.5,j_botR+3,j_ht,20),jMat),0,jointY+j_ht/2,0);
+      addM(new THREE.Mesh(new THREE.TorusGeometry(j_topR*0.5,2,8,Math.max(s_seg,16)),jMat),0,jointY+j_ht,0);
+      break;
+    }
+  }
+
+  const shadeY=jointY+j_ht;
+  let shadeGeo;
+  if(s_shape==='hexagon'){
+    shadeGeo=createHexGeo(s_topR,s_botR,s_ht,6);
+  } else {
+    shadeGeo=new THREE.LatheGeometry(getShapeProfile(s_shape,s_ht,s_topR,s_botR,s_curv),s_seg);
+  }
+  if(s_pleats>0&&s_shape!=='hexagon')addPleats(shadeGeo,s_pleats);
+
+  const shadeMat=getShadeMat(s_op);
+  const shade=addM(new THREE.Mesh(shadeGeo,new THREE.MeshStandardMaterial(shadeMat)),0,shadeY,0);
+
+  addTrim(s_trim,s_topR,s_botR,shadeY,s_seg);
+
+  if(mode==='test'){
+    const deskCol=document.getElementById('deskColor')?.value||'#5c3d2e';
+    const deskMat=new THREE.MeshStandardMaterial({color:new THREE.Color(deskCol),roughness:0.6,metalness:0.1});
+    addM(new THREE.Mesh(new THREE.BoxGeometry(600,16,350),deskMat),0,720,0);
+    const legMat=new THREE.MeshStandardMaterial({color:0x3d2518,roughness:0.7});
+    [[-280,360,-155],[280,360,-155],[-280,360,155],[280,360,155]].forEach(p=>{
+      addM(new THREE.Mesh(new THREE.BoxGeometry(10,720,10),legMat),...p);
+    });
+    const wallMat=new THREE.MeshStandardMaterial({color:0xd0c8b8,roughness:0.85});
+    const wallMat2=new THREE.MeshStandardMaterial({color:0xc0b8a8,roughness:0.85});
+    const floor=addM(new THREE.Mesh(new THREE.PlaneGeometry(3000,3000),new THREE.MeshStandardMaterial({color:0x2a2a2a,roughness:0.9})),0,0,0);
+    floor.rotation.x=-Math.PI/2;
+    addM(new THREE.Mesh(new THREE.PlaneGeometry(3000,1500),wallMat),0,750,-600);
+    addM(new THREE.Mesh(new THREE.PlaneGeometry(1500,1500),wallMat2),-800,750,0).rotation.y=Math.PI/2;
+    addM(new THREE.Mesh(new THREE.PlaneGeometry(1500,1500),wallMat2),800,750,0).rotation.y=-Math.PI/2;
+    const wfMat=new THREE.MeshStandardMaterial({color:0xf0f0f0,roughness:0.3});
+    addM(new THREE.Mesh(new THREE.BoxGeometry(12,320,260),wfMat),790,550,50);
+    windowGlass=addM(new THREE.Mesh(new THREE.PlaneGeometry(290,250),new THREE.MeshStandardMaterial({color:0x87ceeb,transparent:true,opacity:0.3,roughness:0.1})),794,550,50);
+    windowGlass.rotation.y=-Math.PI/2;
+    addM(new THREE.Mesh(new THREE.BoxGeometry(10,5,250),wfMat),790,550,50);
+    addM(new THREE.Mesh(new THREE.BoxGeometry(10,310,5),wfMat),790,550,50);
+    addM(new THREE.Mesh(new THREE.BoxGeometry(35,8,290),wfMat),778,394,50);
+
+    [0x8b4513,0x2c3e50,0x800020].forEach((c,i)=>{
+      const bk=addM(new THREE.Mesh(new THREE.BoxGeometry(28,4,20),new THREE.MeshStandardMaterial({color:c,roughness:0.8})),-120,730+i*4.5,-80);
+      bk.rotation.y=(Math.random()-0.5)*0.08;
+    });
+    addM(new THREE.Mesh(new THREE.CylinderGeometry(14,11,18,16),new THREE.MeshStandardMaterial({color:0xc47451,roughness:0.8})),160,738,-70);
+    addM(new THREE.Mesh(new THREE.SphereGeometry(16,16,16),new THREE.MeshStandardMaterial({color:0x2d5a27,roughness:0.9})),160,758,-70);
+
+    const bulbCol=document.getElementById('bulbColor').value;
+    const bulbSz=parseFloat(document.getElementById('t_bs').value);
+    const bulbPos=parseFloat(document.getElementById('t_bpos').value);
+    const br=parseFloat(document.getElementById('t_br').value)/100;
+    const bulbY=shadeY+bulbPos-s_ht*0.5+20;
+
+    addM(new THREE.Mesh(new THREE.SphereGeometry(bulbSz/2,24,24),
+      new THREE.MeshStandardMaterial({color:new THREE.Color(bulbCol),emissive:new THREE.Color(bulbCol),emissiveIntensity:br*1.5,roughness:0.1,transparent:true,opacity:0.9})),0,bulbY,0);
+
+    // Main point light with shadow casting
+    const pLight=new THREE.PointLight(new THREE.Color(bulbCol),br*1200,2000,1);
+    pLight.position.set(0,bulbY,0);
+    pLight.castShadow=true;
+    pLight.shadow.mapSize.set(2048,2048);
+    pLight.shadow.bias=-0.0005;
+    pLight.shadow.radius=6;
+    pLight.shadow.camera.near=1;
+    pLight.shadow.camera.far=2500;
+    scene.add(pLight);allLights.push(pLight);
+
+    // Inner fill light (no shadow) for soft illumination inside shade
+    const iLight=new THREE.PointLight(new THREE.Color(bulbCol),br*300,400,2);
+    iLight.position.set(0,bulbY,0);
+    scene.add(iLight);allLights.push(iLight);
+
+    if(shade&&shade.material){
+      shade.material.emissive=new THREE.Color(bulbCol);
+      shade.material.emissiveIntensity=br*0.25;
+    }
+  }
+
+  checkCompatibility();
+  focusOnLamp();
+}
+
+function addM(mesh,x,y,z){
+  mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;
+  scene.add(mesh);allMeshes.push(mesh);return mesh;
+}
+
+function createHexGeo(topR,botR,ht,sides){
+  const pos=[],norm=[],uv=[],idx=[];
+  for(let i=0;i<=20;i++){const t=i/20,y=ht*(1-t),r=topR+(botR-topR)*t;
+    for(let j=0;j<=sides;j++){const a=(j/sides)*Math.PI*2;pos.push(Math.cos(a)*r,y,Math.sin(a)*r);norm.push(Math.cos(a),0,Math.sin(a));uv.push(j/sides,t);}}
+  for(let i=0;i<20;i++)for(let j=0;j<sides;j++){const a=i*(sides+1)+j,b=a+1,c=(i+1)*(sides+1)+j,d=c+1;idx.push(a,c,b,b,c,d);}
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('normal',new THREE.Float32BufferAttribute(norm,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx);g.computeVertexNormals();return g;
+}
+
+function addPleats(geo,count){
+  const p=geo.attributes.position;
+  for(let i=0;i<p.count;i++){
+    const x=p.getX(i),z=p.getZ(i);
+    const ang=Math.atan2(z,x),r=Math.sqrt(x*x+z*z);
+    const pa=(ang/(Math.PI*2))*count;
+    const off=Math.sin(pa*Math.PI*2)*4;
+    p.setX(i,Math.cos(ang)*(r+off));p.setZ(i,Math.sin(ang)*(r+off));
+  }
+  p.needsUpdate=true;geo.computeVertexNormals();
+}
+
+function addTrim(trim,topR,botR,shadeY,seg){
+  if(trim==='none')return;
+  let c,m;
+  switch(trim){
+    case'gold':c=0xd4a017;m=new THREE.MeshStandardMaterial({color:c,roughness:0.2,metalness:0.9});break;
+    case'silver':c=0xc0c0c0;m=new THREE.MeshStandardMaterial({color:c,roughness:0.15,metalness:0.95});break;
+    case'fabric':c=new THREE.Color(document.getElementById('s_color').value).multiplyScalar(0.8);m=new THREE.MeshStandardMaterial({color:c,roughness:0.8});break;
+    case'beaded':c=0xf0e68c;m=new THREE.MeshStandardMaterial({color:c,roughness:0.3,metalness:0.5});break;
+    case'fringe':c=new THREE.Color(document.getElementById('s_color').value).multiplyScalar(0.9);m=new THREE.MeshStandardMaterial({color:c,roughness:0.7,side:THREE.DoubleSide});break;
+    default:return;
+  }
+  const ht=parseFloat(document.getElementById('s_height').value);
+  if(['gold','silver','fabric','beaded'].includes(trim)){
+    addM(new THREE.Mesh(new THREE.TorusGeometry(topR,trim==='beaded'?3:2,8,seg),m),0,shadeY+ht,0);
+  }
+  addM(new THREE.Mesh(new THREE.TorusGeometry(botR,trim==='beaded'?4:2.5,8,seg),m),0,shadeY,0);
+  if(trim==='fringe'){
+    for(let i=0;i<seg;i++){const a=(i/seg)*Math.PI*2;
+      addM(new THREE.Mesh(new THREE.CylinderGeometry(0.5,1.5,25,4),m),Math.cos(a)*botR,shadeY-12,Math.sin(a)*botR);
+    }
+  }
+  if(trim==='beaded'){
+    for(let i=0;i<seg;i++){const a=(i/seg)*Math.PI*2;
+      addM(new THREE.Mesh(new THREE.SphereGeometry(3,8,8),m),Math.cos(a)*botR,shadeY,Math.sin(a)*botR);
+    }
+  }
+}
+
+function checkCompatibility(){
+  const s_botR=parseFloat(document.getElementById('s_botR').value);
+  const j_topR=parseFloat(document.getElementById('j_topR').value);
+  const j_botR=parseFloat(document.getElementById('j_botR').value);
+  const b_poleT=parseFloat(document.getElementById('b_poleT').value);
+  const j_type=document.getElementById('j_type').value;
+
+  let errs=[];
+  if(Math.abs(s_botR-j_topR)>15){
+    errs.push(`Нижний радиус абажура (${s_botR}) не совпадает с верхним радиусом соединения (${j_topR}).`);
+  }
+  if(j_type!=='chain'&&j_type!=='cable'&&Math.abs(j_botR-b_poleT)>5){
+    errs.push(`Нижний радиус соединения (${j_botR}) не совпадает с толщиной стойки (${b_poleT}).`);
+  }
+  const ep=document.getElementById('errorPanel');
+  const et=document.getElementById('errorText');
+  if(errs.length){
+    ep.classList.add('show');
+    et.textContent=errs.join(' ');
+    document.getElementById('testBtn').disabled=true;
+  } else {
+    ep.classList.remove('show');
+    document.getElementById('testBtn').disabled=false;
+  }
+}
+
+function focusOnLamp(){
+  const s_ht=parseFloat(document.getElementById('s_height').value);
+  const lampTop=getLampTopY();
+  const cy=lampTop+s_ht/2;
+  controls.target.set(0,cy,0);
+  camera.position.set(250,cy+50,280);
+}
+
+function setEditMode(){
+  mode='edit';
+  document.getElementById('sidebar').classList.remove('hidden');
+  document.getElementById('testFloat').style.display='none';
+  document.getElementById('modeBadge').className='badge edit';
+  document.getElementById('modeBadge').textContent='✏️ РЕДАКТИРОВАНИЕ';
+  document.getElementById('subText').textContent='Настройте параметры лампы';
+  document.getElementById('envBar').style.display='none';
+  document.getElementById('hint').style.display='block';
+
+  scene.background=new THREE.Color(0x1a1a24);
+  renderer.toneMappingExposure=1.3;
+
+  const amb=new THREE.AmbientLight(0x8888bb,0.7);scene.add(amb);envLights.push(amb);
+  const hemi=new THREE.HemisphereLight(0xaabbff,0x443322,0.35);scene.add(hemi);envLights.push(hemi);
+  const d1=new THREE.DirectionalLight(0xffffff,2.0);d1.position.set(200,300,200);d1.castShadow=true;
+  d1.shadow.mapSize.set(2048,2048);d1.shadow.camera.near=10;d1.shadow.camera.far=1000;
+  d1.shadow.camera.left=-300;d1.shadow.camera.right=300;d1.shadow.camera.top=300;d1.shadow.camera.bottom=-300;
+  scene.add(d1);envLights.push(d1);
+  const d2=new THREE.DirectionalLight(0xc8c8ff,0.8);d2.position.set(-200,200,-100);scene.add(d2);envLights.push(d2);
+  const d3=new THREE.DirectionalLight(0xffd4a8,0.5);d3.position.set(0,100,-300);scene.add(d3);envLights.push(d3);
+
+  buildLamp();
+}
+
+function enterTestMode(){
+  const s_botR=parseFloat(document.getElementById('s_botR').value);
+  const j_topR=parseFloat(document.getElementById('j_topR').value);
+  const j_botR=parseFloat(document.getElementById('j_botR').value);
+  const b_poleT=parseFloat(document.getElementById('b_poleT').value);
+  const j_type=document.getElementById('j_type').value;
+  let errs=[];
+  if(Math.abs(s_botR-j_topR)>15)errs.push('Нижний радиус абажура не совпадает с соединением.');
+  if(j_type!=='chain'&&j_type!=='cable'&&Math.abs(j_botR-b_poleT)>5)errs.push('Соединение не совпадает со стойкой.');
+  if(errs.length){alert('Невозможно протестировать: '+errs.join(' '));return;}
+
+  mode='test';
+  document.getElementById('sidebar').classList.add('hidden');
+  document.getElementById('testFloat').style.display='flex';
+  document.getElementById('modeBadge').className='badge test';
+  document.getElementById('modeBadge').textContent='🧪 ТЕСТИРОВАНИЕ';
+  document.getElementById('subText').textContent='Проверьте лампу с лампочкой';
+  document.getElementById('envBar').style.display='flex';
+  document.getElementById('hint').style.display='none';
+
+  scene.background=new THREE.Color(0x87ceeb);
+  renderer.toneMappingExposure=1.2;
+
+  buildLamp();
+  updateTestEnv('day');
+}
+
+function exitTestMode(){
+  setEditMode();
+}
+
+function updateTestEnv(env){
+  envLights.forEach(l=>scene.remove(l));envLights=[];
+  let bg,ac,ai,dc,di,exp,sd;
+  switch(env){
+    case'dark':bg=0x050508;ac=0x0a0a15;ai=0.03;dc=0;di=0;exp=0.6;sd=0;break;
+    case'night':bg=0x080818;ac=0x121228;ai=0.06;dc=0x1a2244;di=0.1;exp=0.7;sd=0;break;
+    case'evening':bg=0x1a1020;ac=0x2a1a2a;ai=0.12;dc=0x553344;di=0.25;exp=0.85;sd=0.15;break;
+    case'sunset':bg=0x2a1510;ac=0x3a2015;ai=0.2;dc=0xff8833;di=0.7;exp=1.1;sd=0.35;break;
+    case'cloudy':bg=0x2a2a2a;ac=0x444444;ai=0.35;dc=0x666666;di=0.4;exp=0.95;sd=0.2;break;
+    case'day':bg=0x87ceeb;ac=0x556677;ai=0.45;dc=0xffffff;di=1.2;exp=1.2;sd=0.5;break;
+    case'studio':bg=0x1a1a1a;ac=0x333333;ai=0.25;dc=0xffffff;di=0.9;exp=1.3;sd=0.4;break;
+  }
+  scene.background=new THREE.Color(bg);renderer.toneMappingExposure=exp;
+  const amb=new THREE.AmbientLight(ac,ai);scene.add(amb);envLights.push(amb);
+  if(di>0){const d=new THREE.DirectionalLight(dc,di);d.position.set(600+sd*200,600,-200);d.castShadow=true;d.shadow.mapSize.set(2048,2048);d.shadow.camera.near=10;d.shadow.camera.far=2500;d.shadow.camera.left=-600;d.shadow.camera.right=600;d.shadow.camera.top=600;d.shadow.camera.bottom=-600;d.shadow.bias=-0.0005;scene.add(d);envLights.push(d);}
+  const wl=new THREE.DirectionalLight(0x88aaff,sd*0.6);wl.position.set(750,500,50);scene.add(wl);envLights.push(wl);
+  const hemi=new THREE.HemisphereLight(0x4466aa,0x222233,0.08);scene.add(hemi);envLights.push(hemi);
+  if(windowGlass){if(['day','cloudy','studio'].includes(env)){windowGlass.material.color.set(0x87ceeb);windowGlass.material.opacity=0.3;}else{windowGlass.material.color.set(0x111128);windowGlass.material.opacity=0.5;}}
+  document.querySelectorAll('.e-btn').forEach(b=>b.classList.remove('active'));
+  const map={dark:'Тёмная',night:'Ночь',evening:'Вечер',sunset:'Закат',cloudy:'Облачно',day:'День',studio:'Студия'};
+  document.querySelectorAll('.e-btn').forEach(b=>{if(b.textContent===map[env])b.classList.add('active');});
+}
+
+function updateAll(){
+  if(mode==='edit'){setEditMode();}
+  else{buildLamp();}
+  updateShapePreviews();
+}
+
+function initShapePreviews(){
+  ['shade','base','joint'].forEach(type=>{
+    const container=document.getElementById(type+'Preview');
+    if(!container)return;
+    const c=document.createElement('canvas');c.style.width='100%';c.style.height='100%';
+    container.insertBefore(c,container.firstChild);
+    const w=container.clientWidth,h=100;
+    const r=new THREE.WebGLRenderer({canvas:c,antialias:true,alpha:true});
+    r.setSize(w,h);r.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    r.setClearColor(0x000000,0);r.toneMapping=THREE.ACESFilmicToneMapping;r.toneMappingExposure=1.2;
+    const s=new THREE.Scene();
+    const cam=new THREE.PerspectiveCamera(40,w/h,1,1000);cam.position.set(0,0,150);
+    s.add(new THREE.AmbientLight(0x8888bb,0.6));
+    const d1=new THREE.DirectionalLight(0xffffff,1.5);d1.position.set(100,100,100);s.add(d1);
+    const d2=new THREE.DirectionalLight(0xc8c8ff,0.6);d2.position.set(-100,50,-50);s.add(d2);
+    previewRenderers[type]={renderer:r,scene:s,camera:cam};
+  });
+  requestAnimationFrame(()=>updateShapePreviews());
+}
+
+function updateShapePreviews(){
+  ['shade','base','joint'].forEach(type=>{
+    const pr=previewRenderers[type];
+    if(!pr)return;
+    pr.scene.children=pr.scene.children.filter(c=>!c.isMesh);
+    let mesh;
+    if(type==='shade'){
+      const sh=document.getElementById('s_shape').value;
+      const ht=parseFloat(document.getElementById('s_height').value);
+      const topR=parseFloat(document.getElementById('s_topR').value);
+      const botR=parseFloat(document.getElementById('s_botR').value);
+      const seg=parseInt(document.getElementById('s_seg').value);
+      const curv=parseFloat(document.getElementById('s_curv').value)/100;
+      const pleats=parseInt(document.getElementById('s_pleats').value);
+      let geo;
+      if(sh==='hexagon')geo=createHexGeo(topR,botR,ht,6);
+      else geo=new THREE.LatheGeometry(getShapeProfile(sh,ht,topR,botR,curv),seg);
+      if(pleats>0&&sh!=='hexagon')addPleats(geo,pleats);
+      const matParams=getShadeMat(parseFloat(document.getElementById('s_op').value)/100);
+      matParams.emissive=new THREE.Color(document.getElementById('s_color').value).multiplyScalar(0.1);
+      matParams.emissiveIntensity=0.25;
+      mesh=new THREE.Mesh(geo,new THREE.MeshStandardMaterial(matParams));
+    } else if(type==='base'){
+      const bt=document.getElementById('b_type').value;
+      const baseR=parseFloat(document.getElementById('b_baseR').value);
+      const baseH=parseFloat(document.getElementById('b_baseH').value);
+      const poleH=parseFloat(document.getElementById('b_poleH').value);
+      const poleT=parseFloat(document.getElementById('b_poleT').value);
+      const bMat=new THREE.MeshStandardMaterial({color:new THREE.Color(document.getElementById('b_color').value),metalness:parseFloat(document.getElementById('b_metal').value)/100,roughness:parseFloat(document.getElementById('b_rough').value)/100});
+      const g=new THREE.Group();
+      switch(bt){
+        case'classic':g.add(makeMesh(new THREE.CylinderGeometry(baseR*0.85,baseR,baseH,24),bMat,0,baseH/2,0));g.add(makeMesh(new THREE.CylinderGeometry(poleT,poleT,poleH,12),bMat,0,baseH+poleH/2,0));break;
+        case'modern':g.add(makeMesh(new THREE.CylinderGeometry(baseR,baseR*0.7,baseH*0.7,6),bMat,0,baseH*0.35,0));g.add(makeMesh(new THREE.CylinderGeometry(poleT*0.8,poleT,poleH,8),bMat,0,baseH*0.7+poleH/2,0));break;
+        case'wood':g.add(makeMesh(new THREE.BoxGeometry(baseR*2,baseH,baseR*2),bMat,0,baseH/2,0));g.add(makeMesh(new THREE.CylinderGeometry(poleT*1.2,poleT*1.5,poleH,12),bMat,0,baseH+poleH/2,0));break;
+        default:g.add(makeMesh(new THREE.CylinderGeometry(baseR*0.8,baseR,baseH,24),bMat,0,baseH/2,0));g.add(makeMesh(new THREE.CylinderGeometry(poleT,poleT,poleH,12),bMat,0,baseH+poleH/2,0));
+      }
+      mesh=g;
+    } else if(type==='joint'){
+      const jt=document.getElementById('j_type').value;
+      const jH=parseFloat(document.getElementById('j_height').value);
+      const jTopR=parseFloat(document.getElementById('j_topR').value);
+      const jBotR=parseFloat(document.getElementById('j_botR').value);
+      const jMat=new THREE.MeshStandardMaterial({color:new THREE.Color(document.getElementById('j_color').value),metalness:parseFloat(document.getElementById('j_metal').value)/100,roughness:0.3});
+      const seg=32;
+      switch(jt){
+        case'ring':mesh=makeMesh(new THREE.TorusGeometry(jTopR,3,8,seg),jMat,0,0,0);mesh.rotation.x=Math.PI/2;break;
+        case'collar':{const g=new THREE.Group();g.add(makeMesh(new THREE.CylinderGeometry(jTopR+5,jBotR+3,jH,24),jMat,0,jH/2,0));g.add(makeMesh(new THREE.TorusGeometry(jTopR+5,4,8,seg),jMat,0,jH,0));mesh=g;break;}
+        case'neck':mesh=makeMesh(new THREE.CylinderGeometry(jTopR*0.3,jBotR+2,jH,20),jMat,0,jH/2,0);break;
+        case'chain':{const g=new THREE.Group();for(let i=0;i<Math.min(Math.floor(jH/5),10);i++){const m=makeMesh(new THREE.TorusGeometry(3,1,8,12),jMat,0,i*5+2.5,0);m.rotation.y=(i%2)*Math.PI/2;g.add(m);}mesh=g;break;}
+        default:mesh=makeMesh(new THREE.CylinderGeometry(jTopR*0.5,jBotR+3,jH,20),jMat,0,jH/2,0);
+      }
+    }
+    if(mesh){
+      pr.scene.add(mesh);
+      const box=new THREE.Box3().setFromObject(mesh);
+      const center=new THREE.Vector3();box.getCenter(center);
+      const size=new THREE.Vector3();box.getSize(size);
+      const maxDim=Math.max(size.x,size.y,size.z)||1;
+      const scale=70/maxDim;
+      mesh.position.sub(center.multiplyScalar(0.5));
+      mesh.scale.setScalar(scale);
+    }
+    pr.renderer.render(pr.scene,pr.camera);
+  });
+}
+
+function makeMesh(geo,mat,x,y,z){
+  const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);return m;
+}
+
+// ===== COMPATIBLE RANDOMIZATION =====
+function randomizePart(part){
+  pushHistory();
+  const shapes=['cylinder','cone','drum','empire','bell','sphere','hexagon','oval','flare','tulip'];
+  const mats=['fabric','paper','glass','metal','rattan','silk','linen'];
+  const pats=['none','stripes','dots','geometric','floral','zigzag','waves','diamonds'];
+  const trims=['none','gold','silver','fabric','beaded','fringe'];
+  const bases=['classic','modern','industrial','wood','marble','minimal','vintage','ceramic'];
+  const joints=['ring','collar','neck','bracket','stem','adapter'];
+  const cols=['#f5e6d3','#2c2c2c','#c4a882','#e8d5c4','#d4a574','#8b4513','#4a6741','#1a3a5c','#800020','#f0f0f0'];
+  const r=()=>Math.random();
+
+  // Read current values
+  const cur_s_botR=parseFloat(document.getElementById('s_botR').value);
+  const cur_b_poleT=parseFloat(document.getElementById('b_poleT').value);
+
+  if(part==='shade'){
+    document.getElementById('s_shape').value=shapes[r()*shapes.length|0];
+    document.getElementById('s_height').value=80+r()*200;
+    document.getElementById('s_topR').value=15+r()*120;
+    const newBotR=30+r()*160;
+    document.getElementById('s_botR').value=newBotR;
+    document.getElementById('s_seg').value=8+r()*50|0;
+    document.getElementById('s_pleats').value=r()*25|0;
+    document.getElementById('s_curv').value=-30+r()*60|0;
+    document.getElementById('s_mat').value=mats[r()*mats.length|0];
+    document.getElementById('s_color').value=cols[r()*cols.length|0];
+    document.getElementById('s_op').value=40+r()*60;
+    document.getElementById('s_pat').value=pats[r()*pats.length|0];
+    document.getElementById('s_trim').value=trims[r()*trims.length|0];
+    // Auto-fix joint top to match
+    document.getElementById('j_topR').value=newBotR;
+  }
+  if(part==='base'){
+    document.getElementById('b_type').value=bases[r()*bases.length|0];
+    document.getElementById('b_baseR').value=25+r()*60;
+    document.getElementById('b_baseH').value=5+r()*20;
+    document.getElementById('b_poleH').value=30+r()*130;
+    const newPoleT=2+r()*10;
+    document.getElementById('b_poleT').value=newPoleT;
+    // Auto-fix joint bottom to match
+    document.getElementById('j_botR').value=newPoleT;
+  }
+  if(part==='joint'){
+    document.getElementById('j_type').value=joints[r()*joints.length|0];
+    document.getElementById('j_height').value=5+r()*45;
+    // Auto-fit to current shade and base
+    document.getElementById('j_topR').value=cur_s_botR;
+    document.getElementById('j_botR').value=cur_b_poleT;
+  }
+
+  ['s_height','s_topR','s_botR','s_seg','s_pleats','s_curv','s_op','b_baseR','b_baseH','b_poleH','b_poleT','b_metal','b_rough','j_height','j_topR','j_botR','j_metal','t_br','t_bs','t_bpos'].forEach(uv);
+  updateAll();
+}
+
+function randomizeAll(){
+  pushHistory();
+  const shapes=['cylinder','cone','drum','empire','bell','sphere','hexagon','oval','flare','tulip'];
+  const mats=['fabric','paper','glass','metal','rattan','silk','linen'];
+  const pats=['none','stripes','dots','geometric','floral','zigzag','waves','diamonds'];
+  const trims=['none','gold','silver','fabric','beaded','fringe'];
+  const bases=['classic','modern','industrial','wood','marble','minimal','vintage','ceramic'];
+  const joints=['ring','collar','neck','bracket','stem','adapter'];
+  const cols=['#f5e6d3','#2c2c2c','#c4a882','#e8d5c4','#d4a574','#8b4513','#4a6741','#1a3a5c','#800020','#f0f0f0'];
+  const r=()=>Math.random();
+
+  const s_botR=30+r()*160;
+  const b_poleT=2+r()*10;
+
+  document.getElementById('s_shape').value=shapes[r()*shapes.length|0];
+  document.getElementById('s_height').value=80+r()*200;
+  document.getElementById('s_topR').value=15+r()*120;
+  document.getElementById('s_botR').value=s_botR;
+  document.getElementById('s_seg').value=8+r()*50|0;
+  document.getElementById('s_pleats').value=r()*25|0;
+  document.getElementById('s_curv').value=-30+r()*60|0;
+  document.getElementById('s_mat').value=mats[r()*mats.length|0];
+  document.getElementById('s_color').value=cols[r()*cols.length|0];
+  document.getElementById('s_op').value=40+r()*60;
+  document.getElementById('s_pat').value=pats[r()*pats.length|0];
+  document.getElementById('s_trim').value=trims[r()*trims.length|0];
+
+  document.getElementById('b_type').value=bases[r()*bases.length|0];
+  document.getElementById('b_baseR').value=25+r()*60;
+  document.getElementById('b_baseH').value=5+r()*20;
+  document.getElementById('b_poleH').value=30+r()*130;
+  document.getElementById('b_poleT').value=b_poleT;
+
+  document.getElementById('j_type').value=joints[r()*joints.length|0];
+  document.getElementById('j_height').value=5+r()*45;
+  document.getElementById('j_topR').value=s_botR;
+  document.getElementById('j_botR').value=b_poleT;
+
+  ['s_height','s_topR','s_botR','s_seg','s_pleats','s_curv','s_op','b_baseR','b_baseH','b_poleH','b_poleT','b_metal','b_rough','j_height','j_topR','j_botR','j_metal','t_br','t_bs','t_bpos'].forEach(uv);
+  updateAll();
+}
+
+function downloadSTL(){
+  const shadeMesh=allMeshes.find(m=>m.geometry&&(m.geometry.type==='LatheGeometry'||m.geometry.type==='BufferGeometry'));
+  if(!shadeMesh){alert('Сначала создайте абажур!');return;}
+  const exp=new STLExporter();
+  const res=exp.parse(shadeMesh,{binary:true});
+  const blob=new Blob([res],{type:'application/octet-stream'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='lampshade.stl';a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function setTE(env,btn){
+  updateTestEnv(env);
+  document.querySelectorAll('.e-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+}
+
+window.switchTab=switchTab;
+window.uv=uv;window.pushHistory=pushHistory;window.updateAll=updateAll;
+window.setTE=setTE;window.randomizeAll=randomizeAll;window.randomizePart=randomizePart;
+window.downloadSTL=downloadSTL;window.enterTestMode=enterTestMode;
+window.exitTestMode=exitTestMode;window.undo=undo;window.redo=redo;
+
+init();
+</script>
+</body>
+</html>
+
