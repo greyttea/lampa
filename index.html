@@ -1064,52 +1064,46 @@ function animatePrint(){
   // Layer-by-layer printing simulation for base and shade only (lying flat on plate)
   const lampGroup=printScene.children.find(c=>c.isGroup);
   if(lampGroup){
-    const baseMesh=lampGroup.children.find(c=>c.userData&&c.userData.type==='base');
-    const shadeMesh=lampGroup.children.find(c=>c.userData&&c.userData.type==='shade');
-    
-    // Base prints first (5-50% progress) - builds up from the plate
-    if(baseMesh){
+    const baseGroup=lampGroup.children.find(c=>c.userData&&c.userData.type==="base");
+    const shadeGroup=lampGroup.children.find(c=>c.userData&&c.userData.type==="shade");
+
+    // Base prints first (5-50% progress) - builds up from the plate vertically
+    if(baseGroup){
       const baseProgress=Math.min(1,Math.max(0,(printProgress-5)/45));
-      const baseBox=new THREE.Box3().setFromObject(baseMesh);
+      const baseBox=new THREE.Box3().setFromObject(baseGroup);
       const baseHeight=baseBox.max.y-baseBox.min.y;
+      const layerThreshold=baseBox.min.y+baseHeight*baseProgress;
+
+      // Show/hide individual meshes based on their Y position (layer by layer)
+      baseGroup.children.forEach((mesh)=>{
+        if(!mesh.geometry)return;
+        const meshBox=new THREE.Box3().setFromObject(mesh);
+        const meshBottom=meshBox.min.y;
+        mesh.visible=meshBottom<=layerThreshold;
+      });
       
-      // Reset scale and position
-      baseMesh.scale.set(1,1,1);
-      baseMesh.position.y=baseBox.min.y;
-      
-      // Simulate layers by adjusting the visible height
-      if(baseProgress>0.02){
-        baseMesh.visible=true;
-        const currentHeight=baseHeight*baseProgress;
-        baseMesh.position.y=baseBox.min.y+currentHeight/2;
-        baseMesh.scale.y=baseProgress;
-      }else{
-        baseMesh.visible=false;
-      }
+      baseGroup.visible=baseProgress>=0.02;
     }
-    
+
     // Shade prints second (50-95% progress), placed next to base on the plate
-    if(shadeMesh){
+    if(shadeGroup){
       const shadeProgress=Math.min(1,Math.max(0,(printProgress-55)/40));
-      const shadeBox=new THREE.Box3().setFromObject(shadeMesh);
+      const shadeBox=new THREE.Box3().setFromObject(shadeGroup);
       const shadeHeight=shadeBox.max.y-shadeBox.min.y;
+      const layerThreshold=shadeBox.min.y+shadeHeight*shadeProgress;
+
+      // Show/hide individual meshes based on their Y position (layer by layer)
+      shadeGroup.children.forEach((mesh)=>{
+        if(!mesh.geometry)return;
+        const meshBox=new THREE.Box3().setFromObject(mesh);
+        const meshBottom=meshBox.min.y;
+        mesh.visible=meshBottom<=layerThreshold;
+      });
       
-      // Reset scale and position
-      shadeMesh.scale.set(1,1,1);
-      shadeMesh.position.y=shadeBox.min.y;
-      
-      // Simulate layers by adjusting the visible height
-      if(shadeProgress>0.02){
-        shadeMesh.visible=true;
-        const currentHeight=shadeHeight*shadeProgress;
-        shadeMesh.position.y=shadeBox.min.y+currentHeight/2;
-        shadeMesh.scale.y=shadeProgress;
-      }else{
-        shadeMesh.visible=false;
-      }
+      shadeGroup.visible=shadeProgress>=0.02;
     }
   }
-  
+
   printRenderer.render(printScene,printCamera);
   
   if(printProgress<100){
