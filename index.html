@@ -80,6 +80,21 @@ select:focus{border-color:#a78bfa}
 .cost-value{font-size:18px;font-weight:700;color:#a78bfa}
 .cost-breakdown{font-size:9px;color:#555;margin-top:6px;line-height:1.6}
 .cost-row{display:flex;justify-content:space-between}
+.print-btn{position:absolute;bottom:14px;right:160px;padding:8px 14px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);border-radius:10px;color:#a78bfa;font-size:10px;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;z-index:10}
+.print-btn:hover{background:rgba(167,139,250,0.25)}
+.print-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center}
+.print-overlay.active{display:flex}
+.print-container{width:90%;max-width:800px;height:70vh;background:#0a0a12;border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.print-header{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center}
+.print-title{font-size:14px;font-weight:700;color:#a78bfa}
+.print-close{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,0.08);border:none;color:#aaa;cursor:pointer;font-size:16px}
+.print-close:hover{background:rgba(255,255,255,0.15);color:#fff}
+.print-viewport{flex:1;position:relative;overflow:hidden}
+.print-canvas{width:100%;height:100%}
+.print-progress{padding:14px 20px;background:rgba(0,0,0,0.3)}
+.progress-bar{height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#a78bfa,#60a5fa);width:0%;transition:width 0.3s}
+.print-status{font-size:10px;color:#666;display:flex;justify-content:space-between}
 </style>
 </head>
 <body>
@@ -252,10 +267,29 @@ select:focus{border-color:#a78bfa}
       <button class="btn btn-back" onclick="exitTestMode()">← Редактировать</button>
       <button class="btn btn-stl" onclick="downloadSTL()">⬇ STL</button>
     </div>
+    <button class="print-btn" id="printBtn" onclick="openPrintPreview()">🖨 Предпросмотр печати</button>
     <div class="cost-panel" id="costPanel">
       <div class="cost-title">Стоимость лампы</div>
       <div class="cost-value" id="costValue">0 ₽</div>
       <div class="cost-breakdown" id="costBreakdown"></div>
+    </div>
+  </div>
+  <div class="print-overlay" id="printOverlay">
+    <div class="print-container">
+      <div class="print-header">
+        <span class="print-title">🖨 Предпросмотр 3D-печати</span>
+        <button class="print-close" onclick="closePrintPreview()">✕</button>
+      </div>
+      <div class="print-viewport">
+        <canvas class="print-canvas" id="printCanvas"></canvas>
+      </div>
+      <div class="print-progress">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="print-status">
+          <span id="printStage">Подготовка...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -880,6 +914,107 @@ function setEditMode(){
   buildLamp();
 }
 
+function exitTestMode(){
+  setEditMode();
+}
+
+// Print preview animation variables
+let printRenderer=null,printScene=null,printCamera=null,printAnimationId=null;
+let printProgress=0,printStage='';
+
+function openPrintPreview(){
+  const overlay=document.getElementById('printOverlay');
+  if(!overlay)return;
+  overlay.classList.add('active');
+  
+  // Initialize print preview scene
+  const canvas=document.getElementById('printCanvas');
+  if(!canvas)return;
+  
+  const w=canvas.clientWidth||600,h=canvas.clientHeight||400;
+  
+  if(!printRenderer){
+    printRenderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
+    printRenderer.setSize(w,h);
+    printRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    printRenderer.setClearColor(0x0a0a12,1);
+    printRenderer.toneMapping=THREE.ACESFilmicToneMapping;
+    printRenderer.toneMappingExposure=1.0;
+    
+    printScene=new THREE.Scene();
+    printCamera=new THREE.PerspectiveCamera(45,w/h,1,2000);
+    printCamera.position.set(400,300,400);
+    
+    const amb=new THREE.AmbientLight(0x404040,0.5);
+    printScene.add(amb);
+    const dir=new THREE.DirectionalLight(0xffffff,1.2);
+    dir.position.set(200,300,200);
+    printScene.add(dir);
+    const dir2=new THREE.DirectionalLight(0xaabbff,0.4);
+    dir2.position.set(-200,100,-100);
+    printScene.add(dir2);
+  }
+  
+  // Clear previous meshes
+  printScene.children=printScene.children.filter(c=>!c.isMesh);
+  
+  // Clone lamp meshes for preview
+  allMeshes.forEach(m=>{
+    if(m.geometry&&m.material){
+      const clone=m.clone();
+      clone.material=m.material.clone();
+      printScene.add(clone);
+    }
+  });
+  
+  // Center the model
+  const box=new THREE.Box3().setFromObject(printScene);
+  const center=box.getCenter(new THREE.Vector3());
+  printScene.children.forEach(c=>{if(c.isMesh)c.position.sub(center);});
+  
+  // Start animation
+  printProgress=0;
+  animatePrint();
+}
+
+function closePrintPreview(){
+  const overlay=document.getElementById('printOverlay');
+  if(overlay)overlay.classList.remove('active');
+  if(printAnimationId){cancelAnimationFrame(printAnimationId);printAnimationId=null;}
+}
+
+function animatePrint(){
+  if(!printScene||!printRenderer||!printCamera)return;
+  
+  const stages=['Подготовка модели','Настройка принтера','Печать основания','Печать стойки','Печать соединений','Печать абажура','Финальная обработка'];
+  const stageIndex=Math.floor(printProgress/100*stages.length);
+  printStage=stages[Math.min(stageIndex,stages.length-1)];
+  
+  document.getElementById('printStage').textContent=printStage;
+  document.getElementById('progressPercent').textContent=Math.round(printProgress)+'%';
+  document.getElementById('progressFill').style.width=printProgress+'%';
+  
+  // Animate rotation
+  printScene.rotation.y+=0.005;
+  
+  // Simulate layer-by-layer printing effect
+  printScene.traverse(o=>{
+    if(o.isMesh&&o.geometry){
+      const scale=Math.min(1,printProgress/100);
+      o.scale.set(scale,scale,scale);
+    }
+  });
+  
+  printRenderer.render(printScene,printCamera);
+  
+  if(printProgress<100){
+    printProgress+=0.3;
+    printAnimationId=requestAnimationFrame(animatePrint);
+  }else{
+    document.getElementById('printStage').textContent='✓ Готово к печати!';
+  }
+}
+
 function enterTestMode(){
   const s_botR=parseFloat(document.getElementById('s_botR').value);
   const j_topR=parseFloat(document.getElementById('j_topR').value);
@@ -905,10 +1040,6 @@ function enterTestMode(){
 
   buildLamp();
   updateTestEnv('day');
-}
-
-function exitTestMode(){
-  setEditMode();
 }
 
 function updateTestEnv(env){
@@ -943,42 +1074,49 @@ function updateAll(){
 
 function updateCost(){
   const s_mat=document.getElementById('s_mat').value;
-  const s_ht=parseFloat(document.getElementById('s_height').value);
-  const s_topR=parseFloat(document.getElementById('s_topR').value);
-  const s_botR=parseFloat(document.getElementById('s_botR').value);
-  const s_seg=parseInt(document.getElementById('s_seg').value);
-  const s_pleats=parseInt(document.getElementById('s_pleats').value);
+  const s_ht=parseFloat(document.getElementById('s_height').value)||0;
+  const s_topR=parseFloat(document.getElementById('s_topR').value)||0;
+  const s_botR=parseFloat(document.getElementById('s_botR').value)||0;
+  const s_seg=parseInt(document.getElementById('s_seg').value)||32;
+  const s_pleats=parseInt(document.getElementById('s_pleats').value)||0;
   
   const b_type=document.getElementById('b_type').value;
-  const b_baseR=parseFloat(document.getElementById('b_baseR').value);
-  const b_baseH=parseFloat(document.getElementById('b_baseH').value);
-  const b_poleH=parseFloat(document.getElementById('b_poleH').value);
-  const b_poleT=parseFloat(document.getElementById('b_poleT').value);
+  const b_baseR=parseFloat(document.getElementById('b_baseR').value)||0;
+  const b_baseH=parseFloat(document.getElementById('b_baseH').value)||0;
+  const b_poleH=parseFloat(document.getElementById('b_poleH').value)||0;
+  const b_poleT=parseFloat(document.getElementById('b_poleT').value)||0;
   
   const j_type=document.getElementById('j_type').value;
-  const j_ht=parseFloat(document.getElementById('j_height').value);
+  const j_ht=parseFloat(document.getElementById('j_height').value)||0;
   
-  // Material prices per unit (rubles)
-  const matPrices={fabric:1.2,paper:0.8,glass:3.5,metal:4.2,rattan:2.8,silk:5.5,linen:2.2};
-  const basePrices={classic:15,modern:20,industrial:25,wood:30,marble:45,minimal:12,vintage:28,ceramic:22};
-  const jointPrices={ring:8,collar:12,neck:6,bracket:10,stem:5,chain:15,cable:4,decorative:14};
+  // Material prices per unit (rubles) - realistic pricing
+  const matPrices={fabric:1.5,paper:0.9,glass:4.2,metal:5.5,rattan:3.2,silk:6.8,linen:2.8};
+  const basePrices={classic:18,modern:24,industrial:32,wood:38,marble:55,minimal:14,vintage:34,ceramic:28};
+  const jointPrices={ring:10,collar:15,neck:8,bracket:12,stem:6,chain:18,cable:5,decorative:17};
   
   // Shade cost: material * surface area approximation + complexity
   const avgR=(s_topR+s_botR)/2;
   const slantH=Math.sqrt(Math.pow(s_ht,2)+Math.pow(s_botR-s_topR,2));
   const shadeArea=avgR*slantH*Math.PI+(Math.pow(s_topR,2)+Math.pow(s_botR,2))*Math.PI*0.5;
-  const matPrice=matPrices[s_mat]||1;
-  let shadeCost=shadeArea*matPrice*(1+s_pleats*0.05)*(1+(s_seg>32?0.1:0));
+  const matPrice=matPrices[s_mat]||1.5;
+  let shadeCost=shadeArea*matPrice*(1+s_pleats*0.08)*(1+(s_seg>32?0.15:0));
   
-  // Base cost: type base + volume factor
+  // Base cost: type base + volume factor with material multiplier
   const baseVol=Math.pow(b_baseR,2)*Math.PI*b_baseH+b_poleT*b_poleT*Math.PI*b_poleH*0.1;
   let baseCost=basePrices[b_type]*baseVol/100;
   
-  // Joint cost
-  let jointCost=jointPrices[j_type]*(1+j_ht/50);
+  // Joint cost with validation to prevent NaN
+  let jointCost=jointPrices[j_type]||10;
+  if(isFinite(j_ht)&&j_ht>=0){
+    jointCost=jointCost*(1+j_ht/50);
+  }
   
-  // Total
-  const total=shadeCost+baseCost+jointCost;
+  // Total with NaN protection
+  let total=shadeCost+baseCost+jointCost;
+  if(!isFinite(total)||isNaN(total)){total=0;}
+  if(!isFinite(shadeCost)||isNaN(shadeCost)){shadeCost=0;}
+  if(!isFinite(baseCost)||isNaN(baseCost)){baseCost=0;}
+  if(!isFinite(jointCost)||isNaN(jointCost)){jointCost=0;}
   
   document.getElementById('costValue').textContent=Math.round(total)+' ₽';
   document.getElementById('costBreakdown').innerHTML=
@@ -1194,6 +1332,7 @@ window.uv=uv;window.pushHistory=pushHistory;window.updateAll=updateAll;window.up
 window.setTE=setTE;window.randomizeAll=randomizeAll;window.randomizePart=randomizePart;
 window.downloadSTL=downloadSTL;window.enterTestMode=enterTestMode;
 window.exitTestMode=exitTestMode;window.undo=undo;window.redo=redo;
+window.openPrintPreview=openPrintPreview;window.closePrintPreview=closePrintPreview;
 
 init();
 </script>
